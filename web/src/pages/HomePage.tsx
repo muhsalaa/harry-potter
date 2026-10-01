@@ -14,10 +14,11 @@ import { useSkeletonVisible } from "../hooks/useSkeletonVisible";
 
 /**
  * Split Studio, hero revised. The tower leads the page as a full-width band —
- * the index's one picture, before any text — and the title sits under it on a
- * rule with the tagline beside it, the way a plate is captioned. Both the title
- * and the corpus numeral below are set in the page's one display face; the pixel
- * outlier is kept for the two brand marks, so nothing here argues with anything.
+ * the index's one picture, before any text — and one masthead row follows it:
+ * the corpus number, the page's name, the tagline, the page count, all on a
+ * single baseline over a single rule. They used to be two ruled bands stacked,
+ * which said "Wizarding Index" and "The index" twice and looked like two
+ * sections competing for the same job.
  *
  * Nothing on this page describes how the page is built. A reader is here for
  * the characters.
@@ -42,19 +43,12 @@ export function HomePage() {
         <div className="edge border-rule-strong bg-paper-2 p-1 shadow-[var(--hp-shadow-sprite)]">
           <PixelScene className="block h-auto w-full" />
         </div>
-
-        <div className="mt-6 flex flex-wrap items-baseline gap-x-6 gap-y-1 border-b-[3px] border-rule-strong pb-5">
-          <h1 className="font-display text-display uppercase text-ink">Wizarding Index</h1>
-
-          <p className="font-display text-md text-muted">
-            Every character, shelved in one tower.
-          </p>
-        </div>
       </section>
 
-      <section id="index" className="page-gutter scroll-mt-4 pt-6 pb-16">
-        <div className="flex flex-wrap items-end justify-between gap-x-8 gap-y-3 border-b-[3px] border-rule-strong pb-3">
-          <div className="flex min-w-0 items-end gap-4">
+      {/* One band, one rule: the number, the name, the tagline. */}
+      <section id="index" className="page-gutter scroll-mt-4 pt-8 pb-16">
+        <div className="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-1 border-b-[3px] border-rule-strong pb-3">
+          <div className="flex min-w-0 flex-wrap items-baseline gap-x-5 gap-y-1">
             {meta ? (
               <span className="font-display numeric text-numeral leading-none text-accent">
                 {meta.records.toLocaleString("en-US")}
@@ -62,8 +56,14 @@ export function HomePage() {
             ) : (
               <NumeralSkeleton />
             )}
-            <h2 className="font-display text-xl-display mb-1 text-ink">The index</h2>
+
+            <h1 className="font-display text-xl-display text-ink">Wizarding Index</h1>
+
+            <p className="font-display text-md text-muted">
+              Every character, shelved in one tower.
+            </p>
           </div>
+
           {meta ? <p className="label numeric text-muted">{meta.pages} pages</p> : null}
         </div>
 
