@@ -4,7 +4,11 @@
  * enrichment: H9 hand-built SVG centrepiece (Tier B, 384 × 192 grid, no external assets)
  * genre: editorial (light warm paper, illustration-led index) · nav: N7 Brutal slab · footer: Ft5 Statement
  * studied: no · reference: attached mood image (candlelit tower) — palette intent and material only
- * context: revised after user feedback — light mode only, denser art, print-grade contrast · v1.1.0
+ * context: revised after user feedback — light mode only, denser art, print-grade contrast · v1.2.0
+ * v1.2.0 — 16 characters a page over a 4-up grid, the tower hoisted to a full-width
+ * hero band, and a 90rem (1440px) page column the shell centres itself inside.
+ * The page now speaks one display voice (Jersey 15); Silkscreen is kept for the two
+ * brand marks, so the hero title sets in the same face as every other heading.
  *
  * Axis history in this project: editorial/Catalogue (light, roman-serif, warm) → dark/tower → this.
  * It differs from the dark run on paper band (dark → light) and from the editorial run on display
@@ -93,19 +97,11 @@
   --hp-text-display-s: clamp(2.25rem, 4vw + 1rem, 4rem);
   --hp-text-display: clamp(2.75rem, 5vw + 1rem, 5.25rem);
 
-  /* The wordmark. Silkscreen draws ~0.92em per character, and the token is
-     measured in *container* units (cqi) because the mark lives in a split
-     column: it must fit the column it is in, not the viewport. At 11cqi the
-     longest word holds one line at every width from 320px up, and the mark
-     never breaks mid-word (see .wordmark — breaking is disabled there). */
-  --hp-text-wordmark: clamp(1.75rem, 11cqi, 4.5rem);
-  /* The nav's own wordmark: never wraps at 320px (gate 49). */
+  /* The nav's mark: never wraps at 320px (gate 49). */
   --hp-text-mark-s: clamp(1.0625rem, 4.6vw, 1.5rem);
   /* The corpus numeral: a data object, ≤ 12ch, so it may exceed the display cap. */
   --hp-text-numeral: clamp(2.5rem, 9vw, 6rem);
-
   --hp-measure: 65ch;
-
   /* ── Space — 4pt scale. Tailwind's numeric scale is the same scale. ─────── */
   --hp-space-3xs: 0.125rem;
   --hp-space-2xs: 0.25rem;
@@ -118,6 +114,8 @@
   --hp-space-3xl: 6rem;
   --hp-space-4xl: 9rem;
   --hp-page-gutter: clamp(1rem, 5vw, 4.5rem);
+  /* The page column. 1440px at the default root size; the shell centres it. */
+  --hp-page-max: 90rem;
 
   /* ── Pixel chrome — everything in this design is drawn on a 2px grid ──────
      No hairlines: a 1px line beside 2px pixel frames reads as a rendering
@@ -128,7 +126,9 @@
   /* Hard offset depth — a blurred shadow would break the sprite illusion.
      On paper the offset shadow is ink, not a grey wash. */
   --hp-shadow-sprite: 4px 4px 0 0 var(--hp-ink);
-  --hp-shadow-key: 3px 3px 0 0 var(--hp-accent-deep);
+  /* 2px, not 3: everything here is drawn on the 2px grid, and a control that
+     sinks by 2px on press has to lose exactly the shadow it had. */
+  --hp-shadow-key: 2px 2px 0 0 var(--hp-accent-deep);
 
   /* ── Motion — sprite animation is discrete. Everything the scene does uses
      `steps()`, the way a 12-frame pixel animation does; UI transitions stay

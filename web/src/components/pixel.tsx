@@ -9,6 +9,8 @@
  * land on whole device pixels; below that they subdivide smoothly, never blur.
  */
 
+import { PORTRAIT_H, PORTRAIT_W, portraitArt } from "./portraits";
+
 const rng = (seed: number) => {
   let s = seed;
   return () => {
@@ -381,6 +383,35 @@ export function PixelScene({ className = "" }: { className?: string }) {
       {/* framing arches, drawn last so they stand in front of the stair */}
       <Arch x={140} y={96} w={22} h={56} cols={2} rows={5} />
       <Arch x={222} y={96} w={22} h={56} cols={2} rows={5} />
+    </svg>
+  );
+}
+
+/**
+ * A portrait plate for a character with no picture: one of four drawn objects on
+ * a night sky, chosen by the name (see portraits.ts). Drawn at the tile's own
+ * 3:4, so it fills the frame the photographs fill.
+ */
+export function PixelPortrait({ seed, className = "" }: { seed: string; className?: string }) {
+  return (
+    <svg
+      viewBox={`0 0 ${PORTRAIT_W} ${PORTRAIT_H}`}
+      preserveAspectRatio="xMidYMid meet"
+      className={className}
+      aria-hidden="true"
+      focusable="false"
+    >
+      {portraitArt(seed).map((rect, index) => (
+        <rect
+          key={index}
+          x={rect.x}
+          y={rect.y}
+          width={rect.w}
+          height={rect.h}
+          fill={`var(--hp-art-${rect.fill})`}
+          opacity={rect.opacity}
+        />
+      ))}
     </svg>
   );
 }

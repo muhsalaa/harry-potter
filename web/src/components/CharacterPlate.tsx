@@ -11,10 +11,14 @@ type CharacterPlateProps = {
 
 /**
  * A sprite tile: framed portrait, hard offset shadow, name in the pixel display
- * face, and one meta line — only when the meta line has something to say.
+ * face, and one meta line — the house as a chip, plus any state you own.
  * The shadow is the only depth in the design and it is never blurred: a blurred
  * shadow would break the illusion the art depends on. Hover answers with one
  * signal, the name turning bronze.
+ *
+ * The caption is measured, not fitted: the name may run to two lines and the
+ * meta line is always drawn, so every tile in a row ends on the same baseline.
+ * A page of 16 then reads as one shelf rather than sixteen loose pieces of paper.
  */
 export function CharacterPlate({ character, priority = false }: CharacterPlateProps) {
   const kept = Boolean(character.viewer?.favorited);
@@ -22,6 +26,7 @@ export function CharacterPlate({ character, priority = false }: CharacterPlatePr
   return (
     <Link
       to={`/characters/${character.slug}`}
+      title={character.name}
       className="group block no-underline"
     >
       <figure className="m-0">
@@ -30,25 +35,22 @@ export function CharacterPlate({ character, priority = false }: CharacterPlatePr
         </div>
 
         <figcaption className="mt-2">
-          <span className="font-display block text-md leading-tight text-ink group-hover:text-accent">
+          <span className="font-display line-clamp-2 block min-h-[2.5em] break-words text-md leading-tight text-ink group-hover:text-accent">
             {character.name}
           </span>
 
-          {/* Only facts that exist. Three quarters of this corpus lists no house,
-              and a caption repeating "no house listed" under most tiles is noise
-              — the record page already omits empty fields for the same reason. */}
-          {character.house || kept || character.viewer?.hasNote ? (
-            <span className="label mt-1 flex flex-wrap items-center gap-x-3 text-muted">
-              {kept ? (
-                <span className="flex items-center gap-x-2 text-magic">
-                  <span aria-hidden="true" className="inline-block size-2 bg-magic" />
-                  in your list
-                </span>
-              ) : null}
-              {character.house ? <span>{character.house}</span> : null}
-              {character.viewer?.hasNote ? <span className="text-magic">note</span> : null}
-            </span>
-          ) : null}
+          <span className="label mt-1 flex min-h-5 flex-wrap items-center gap-x-2 gap-y-1 text-muted">
+            {kept ? (
+              <span className="flex items-center gap-x-2 text-magic">
+                <span aria-hidden="true" className="inline-block size-2 bg-magic" />
+                in your list
+              </span>
+            ) : null}
+            {character.house ? (
+              <span className="bg-paper-3 px-1.5 py-px">{character.house}</span>
+            ) : null}
+            {character.viewer?.hasNote ? <span className="text-magic">note</span> : null}
+          </span>
         </figcaption>
       </figure>
     </Link>

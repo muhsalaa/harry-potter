@@ -1,10 +1,12 @@
 import { useState } from "react";
 
+import { PixelPortrait } from "./pixel";
+
 type PortraitProps = {
   image: string | null;
   name: string;
   priority?: boolean;
-  /** Larger monogram for the character page. */
+  /** How wide a mosaic to ask the image service for. */
   scale?: "plate" | "record";
 };
 
@@ -20,16 +22,12 @@ export function pixelUrl(image: string, width: number) {
   return `${base}/revision/latest/scale-to-width-down/${width}${query ?? ""}`;
 }
 
-function initials(name: string) {
-  const words = name.split(/\s+/).filter((word) => /[a-z]/i.test(word));
-  const [first, second] = words;
-  return `${first?.[0] ?? "?"}${second?.[0] ?? ""}`.toUpperCase();
-}
-
 /**
- * The image, or the designed absence of one. 54% of the PotterDB corpus has no
- * portrait, so the empty case is part of the design: a monogram on an elevated
- * plate, which reads as a character tile rather than as a broken image.
+ * The image, or the designed absence of one. Half the PotterDB corpus has no
+ * portrait, and the image host drops some of the rest, so the empty case is not
+ * an edge case — it is half the grid. It gets a drawn plate instead: night sky
+ * and one pixel object, chosen from four by the character's name, so no tile is
+ * ever blank paper and no two neighbours are handed the same picture.
  *
  * Two-stage source: the mosaic first, then the original file if that file has
  * no thumbnail to offer. `referrerPolicy="no-referrer"` is required, not a
@@ -37,11 +35,11 @@ function initials(name: string) {
  * Referer header, so a browser that sends one gets nothing back.
  */
 export function Portrait({ image, name, priority = false, scale = "plate" }: PortraitProps) {
-  const [stage, setStage] = useState<"mosaic" | "original" | "monogram">("mosaic");
+  const [stage, setStage] = useState<"mosaic" | "original" | "drawn">("mosaic");
   const width = scale === "record" ? 96 : 64;
 
   const source =
-    !image || stage === "monogram"
+    !image || stage === "drawn"
       ? null
       : stage === "original"
         ? image
@@ -57,21 +55,11 @@ export function Portrait({ image, name, priority = false, scale = "plate" }: Por
           fetchPriority={priority ? "high" : "auto"}
           decoding="async"
           referrerPolicy="no-referrer"
-          onError={() => setStage(stage === "mosaic" ? "original" : "monogram")}
+          onError={() => setStage(stage === "mosaic" ? "original" : "drawn")}
           className="h-full w-full object-cover object-top"
         />
       ) : (
-        <div className="flex h-full items-center justify-center">
-          <span
-            aria-hidden="true"
-            className={[
-              "font-display text-muted select-none",
-              scale === "record" ? "text-display" : "text-3xl",
-            ].join(" ")}
-          >
-            {initials(name)}
-          </span>
-        </div>
+        <PixelPortrait seed={name} className="h-full w-full" />
       )}
     </div>
   );

@@ -9,7 +9,8 @@
     "lint": "oxlint",
     "typecheck": "tsc -b",
     "check:tokens": "node scripts/check-tokens.mjs",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "test": "node --test"
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.3.3",

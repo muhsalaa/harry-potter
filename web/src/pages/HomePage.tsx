@@ -13,9 +13,11 @@ type State =
   | { kind: "failed" };
 
 /**
- * Split Studio. The opening block is a diptych — the index's voice on one side,
- * the tower on the other — and the count below it is set as an object in the
- * pixel face rather than as a sentence. Counts come from the live corpus.
+ * Split Studio, hero revised. The tower leads the page as a full-width band —
+ * the index's one picture, before any text — and the title sits under it on a
+ * rule with the tagline beside it, the way a plate is captioned. Both the title
+ * and the corpus numeral below are set in the page's one display face; the pixel
+ * outlier is kept for the two brand marks, so nothing here argues with anything.
  *
  * Nothing on this page describes how the page is built. A reader is here for
  * the characters.
@@ -51,34 +53,20 @@ export function HomePage() {
   }, [page]);
 
   const meta = state.kind === "ready" ? state.list.meta : null;
-  const counts = meta ? `${meta.records} characters · ${meta.pages} pages` : null;
 
   return (
     <>
-      <section className="page-gutter grid gap-10 pt-12 pb-10 lg:grid-cols-2 lg:items-center lg:gap-14">
-        <div className="min-w-0 [container-type:inline-size]">
-          <h1 className="wordmark text-ink">Wizarding Index</h1>
-
-          <p className="mt-6 max-w-[32ch] text-md text-ink">
-            Every character, shelved in one tower.
-          </p>
-
-          <p className="label numeric mt-6 text-muted">
-            {counts ?? "opening the index…"}
-          </p>
-
-          <p className="mt-8">
-            <a href="#index" className="label inline-flex min-h-11 items-center text-accent underline">
-              <span aria-hidden="true" className="caret me-2 rotate-90" />
-              Skip to the index
-            </a>
-          </p>
+      <section className="page-gutter pt-10">
+        <div className="edge border-rule-strong bg-paper-2 p-1 shadow-[var(--hp-shadow-sprite)]">
+          <PixelScene className="block h-auto w-full" />
         </div>
 
-        <div className="min-w-0 lg:justify-self-end">
-          <div className="max-w-[44rem] edge border-rule-strong bg-paper-2 p-1 shadow-[var(--hp-shadow-sprite)]">
-            <PixelScene className="block h-auto w-full" />
-          </div>
+        <div className="mt-6 flex flex-wrap items-baseline gap-x-6 gap-y-1 border-b-[3px] border-rule-strong pb-5">
+          <h1 className="font-display text-display uppercase text-ink">Wizarding Index</h1>
+
+          <p className="font-display text-md text-muted">
+            Every character, shelved in one tower.
+          </p>
         </div>
       </section>
 
@@ -86,7 +74,7 @@ export function HomePage() {
         <div className="flex flex-wrap items-end justify-between gap-x-8 gap-y-3 border-b-[3px] border-rule-strong pb-3">
           <div className="flex min-w-0 items-end gap-4">
             {meta ? (
-              <span className="glyph numeric text-numeral leading-none text-accent">
+              <span className="font-display numeric text-numeral leading-none text-accent">
                 {meta.records.toLocaleString("en-US")}
               </span>
             ) : null}

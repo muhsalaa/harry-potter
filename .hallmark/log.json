@@ -5,6 +5,15 @@
     "theme": "custom",
     "theme_axes": "light / display-heavy / warm",
     "vibe": "parchment catalogue, pixel tower, candle ink",
+    "enrichment": "H9 hand-built SVG (384 × 192) hoisted to a full-width hero band, plus four drawn 48 × 64 portrait plates for characters with no picture",
+    "brief": "Wizarding Index · v1.2 — user revision: 16 characters a page over a 4-up plate grid, 90rem centred page column, hero art enlarged at the top, one display face (Jersey 15) with Silkscreen left to the brand marks, rule-free nav"
+  },
+  {
+    "date": "2026-10-01",
+    "macrostructure": "Split Studio",
+    "theme": "custom",
+    "theme_axes": "light / display-heavy / warm",
+    "vibe": "parchment catalogue, pixel tower, candle ink",
     "enrichment": "H9 hand-built SVG (384 × 192 pixel grid, Tier B)",
     "brief": "Wizarding Index · PotterDB character portal, redesigned to a pixel-wizardry theme in light mode"
   },

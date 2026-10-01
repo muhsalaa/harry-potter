@@ -15,10 +15,16 @@ const item =
 const itemLit = "label inline-flex min-h-11 items-center whitespace-nowrap no-underline text-accent";
 
 /**
- * N7 · Brutal slab. A heavy full-width bar on a 3px rule: the pixel aesthetic
- * has no room for soft chrome, so the nav is a rule with things standing on it.
- * The current page is marked twice — amber 2px underline (colour is never the
- * only signal) and a drawn caret, the way a menu highlights a selection.
+ * N7 · Brutal slab. A heavy full-width bar with no rule under it: the only line
+ * the header draws is the bronze one beneath the mark itself, so the nav sits on
+ * the page rather than closing the top of it. The current page is marked twice —
+ * amber underline (colour is never the only signal) and a drawn caret, the way a
+ * menu highlights a selection.
+ *
+ * The bar carries one filled control, and it is the app's own slab button: the
+ * same edge, the same 2px shadow, the same padding as every other primary
+ * action. Any less padding here and the nav's only call to action would read as
+ * a cramped sticker next to the links it sits with.
  */
 export function Masthead() {
   const { status, user, signOut } = useAuth();
@@ -34,8 +40,8 @@ export function Masthead() {
   }
 
   return (
-    <header className="page-gutter border-b-[3px] border-rule-strong bg-paper">
-      <div className="flex flex-wrap items-center gap-x-6 gap-y-1 py-1">
+    <header className="page-gutter bg-paper">
+      <div className="flex flex-wrap items-center gap-x-6 gap-y-1 py-2">
         <NavLink to="/" className="glyph inline-flex min-h-11 items-center text-mark-s whitespace-nowrap no-underline uppercase">
           <span className="border-b-[3px] border-accent pb-0.5">Wizarding Index</span>
         </NavLink>
@@ -82,7 +88,7 @@ export function Masthead() {
                 <li>
                   <NavLink
                     to="/register"
-                    className="label inline-flex min-h-11 items-center whitespace-nowrap edge border-accent-deep bg-accent-fill px-4 text-accent-ink no-underline uppercase shadow-[var(--hp-shadow-key)] hover:border-accent active:translate-0.5 active:shadow-none"
+                    className="label inline-flex min-h-12 items-center whitespace-nowrap edge border-accent-deep bg-accent-fill px-5 py-2 text-accent-ink no-underline uppercase shadow-[var(--hp-shadow-key)] hover:border-accent active:translate-0.5 active:shadow-none"
                   >
                     Create account
                   </NavLink>

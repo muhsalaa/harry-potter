@@ -53,7 +53,6 @@
   --text-display-s: var(--hp-text-display-s);
   --text-display: var(--hp-text-display);
   --text-xl-display: var(--hp-text-xl-display);
-  --text-wordmark: var(--hp-text-wordmark);
   --text-mark-s: var(--hp-text-mark-s);
   --text-numeral: var(--hp-text-numeral);
 }
@@ -162,25 +161,12 @@
     text-transform: uppercase;
   }
 
-  /* The outlier register: the wordmark and the corpus numerals. Two slots,
-     nothing else, per the 2+1 rule. */
+  /* The outlier register: the two brand marks, nav and footer, and nothing
+     else. Everything a reader has to *read* is display or body. */
   .glyph {
     font-family: var(--hp-font-glyph);
     font-weight: 700;
     letter-spacing: 0;
-  }
-
-  /* The wordmark, sized against its own column (cqi) and never broken inside
-     a word: a wrapped brand that reads WIZARDIN/G is worse than a small one.
-     The parent must declare `container-type: inline-size`. */
-  .wordmark {
-    font-family: var(--hp-font-glyph);
-    font-weight: 700;
-    font-size: var(--hp-text-wordmark);
-    line-height: 1.06;
-    text-transform: uppercase;
-    overflow-wrap: normal;
-    word-break: keep-all;
   }
 
   /* A drawn menu caret — the current-item marker in the nav and the toolbar.
