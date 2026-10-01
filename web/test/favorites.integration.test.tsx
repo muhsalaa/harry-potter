@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 
 import { apiCalls, character, noSession, renderApp, stubApi } from "./harness";
 
-const reader = { user: { id: 7, email: "reader@example.com" } };
+const reader = { user: { id: "7f0d3a9e-6b1c-4a4e-9d3f-1c2b3a4d5e6f", email: "reader@example.com", name: "reader" } };
 
 describe("the list", () => {
   it("tells a reader with no session what it is for, and asks for no list", async () => {

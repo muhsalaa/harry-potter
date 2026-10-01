@@ -1,8 +1,8 @@
 import { createServices } from "./application/services.ts";
 import type { Services } from "./application/services.ts";
+import { createAuth, sweepExpiredSessions } from "./auth.ts";
+import type { Auth } from "./auth.ts";
 import { createApp } from "./http/app.ts";
-import { scryptPasswords } from "./infrastructure/crypto/passwords.ts";
-import { createAccountStore } from "./infrastructure/d1/account-store.ts";
 import { createCharacterStore } from "./infrastructure/d1/character-store.ts";
 import { appliedMigrations, openDatabase } from "./infrastructure/d1/database.ts";
 import { createPersonalStore } from "./infrastructure/d1/personal-store.ts";
@@ -18,20 +18,19 @@ export function createServicesFrom(env: Env): Services {
   return createServices({
     catalog: createPotterDbCatalog(env.POTTERDB_BASE_URL),
     characters: createCharacterStore(db),
-    accounts: createAccountStore(db),
     personal: createPersonalStore(db),
-    passwords: scryptPasswords,
     migrations: { applied: () => appliedMigrations(db) },
   });
 }
 
 export default {
   fetch(request: Request, env: Env): Promise<Response> {
-    return createApp(createServicesFrom(env)).fetch(request);
+    const auth: Auth = createAuth(env, request);
+    return createApp({ services: createServicesFrom(env), auth }).fetch(request);
   },
 
-  /** Sessions expire by their own clock; the sweep only takes the rows away. */
+  /** Nothing to do but take the rows away: an expired session cannot be read. */
   scheduled(_controller: ScheduledController, env: Env, ctx: ExecutionContext): void {
-    ctx.waitUntil(createAccountStore(openDatabase(env.DB)).sweepSessions());
+    ctx.waitUntil(sweepExpiredSessions(env));
   },
 } satisfies ExportedHandler<Env>;

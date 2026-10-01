@@ -5,8 +5,9 @@ import type { Note, ViewerState } from "../../domain/model.ts";
 import type { Db } from "./database.ts";
 import { characters, favorites, notes } from "./schema.ts";
 
+/** A User is a uuid string — Better Auth's id, not a row number of ours. */
 export function createPersonalStore(db: Db): PersonalStore {
-  const note = async (userId: number, characterId: number): Promise<Note | null> =>
+  const note = async (userId: string, characterId: number): Promise<Note | null> =>
     (await db
       .select({ body: notes.body, updatedAt: notes.updated_at })
       .from(notes)
@@ -15,7 +16,7 @@ export function createPersonalStore(db: Db): PersonalStore {
 
   /** The `favorited` / `hasNote` flags the viewer is entitled to see, by row id. */
   const viewerState = async (
-    userId: number | null,
+    userId: string | null,
     characterIds: number[],
   ): Promise<Map<number, ViewerState>> => {
     if (!userId || characterIds.length === 0) return new Map();

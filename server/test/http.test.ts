@@ -7,25 +7,45 @@ import { character, makeWorld } from "./harness.ts";
 /**
  * The real handler, called the way the runtime calls it — no socket, no
  * Express. Routing, cookies and status codes are the surface here.
+ *
+ * Requests are made from the origin a browser would be on, which is also the
+ * one Better Auth trusts: vite on :5173, proxying /api. Anything else is a
+ * different site, and Better Auth's CSRF check answers it with a 403.
  */
 async function serve() {
   const world = await makeWorld([[character()]]);
-  const app = createApp(world.services);
+  const app = createApp({ services: world.services, auth: world.auth });
 
   return {
     ...world,
     api: (path: string, init?: RequestInit) =>
-      app.fetch(new Request(`https://portal.test${path}`, init)),
-    overHttp: (path: string, init?: RequestInit) =>
-      app.fetch(new Request(`http://localhost:3000${path}`, init)),
+      app.fetch(new Request(`http://localhost:5173${path}`, init)),
   };
 }
 
+/**
+ * A browser's own POST: a content type, a cookie when there is one, and the
+ * Origin header Better Auth checks before it will change anything.
+ */
 const json = (body: unknown, cookie?: string): RequestInit => ({
   method: "POST",
-  headers: { "content-type": "application/json", ...(cookie ? { cookie } : {}) },
+  headers: {
+    "content-type": "application/json",
+    origin: "http://localhost:5173",
+    ...(cookie ? { cookie } : {}),
+  },
   body: JSON.stringify(body),
 });
+
+const signUp = (email: string, password = "expelliarmus42"): RequestInit =>
+  json({ email, password, name: email.split("@")[0] });
+
+/** The session cookie out of a response, as a browser would keep it. */
+const cookieOf = (response: Response) =>
+  response.headers
+    .getSetCookie()
+    .map((value) => value.split(";")[0])
+    .join("; ");
 
 test("health reports the migrations it booted with", async () => {
   const app = await serve();
@@ -35,13 +55,14 @@ test("health reports the migrations it booted with", async () => {
 
   assert.equal(response.status, 200);
   assert.equal(body.ok, true);
-  assert.equal(body.database.migrations, 5);
+  assert.equal(body.database.migrations, 6);
   assert.deepEqual(body.database.applied, [
     "001-users-and-sessions.sql",
     "002-characters.sql",
     "003-favorites.sql",
     "004-notes.sql",
     "005-page-size-16.sql",
+    "006-better-auth.sql",
   ]);
 
   const missing = await app.api("/api/nonesuch");
@@ -56,21 +77,19 @@ test("a rejected promise from a route is answered, not swallowed", async () => {
   const app = await serve();
 
   const refused = await app.api(
-    "/api/auth/register",
-    json({ email: "not-an-address", password: "expelliarmus42" }),
+    "/api/notes/1",
+    { method: "PUT", headers: { "content-type": "application/json" }, body: JSON.stringify({ body: "x" }) },
   );
 
-  assert.equal(refused.status, 400);
-  assert.deepEqual(await refused.json(), {
-    error: "That email address is not one an address could have.",
-  });
+  assert.equal(refused.status, 401);
+  assert.deepEqual(await refused.json(), { error: "Sign in first — this is yours alone." });
 });
 
 test("a body that is not JSON is the caller's mistake, not ours", async () => {
   const app = await serve();
 
-  const broken = await app.api("/api/auth/register", {
-    method: "POST",
+  const broken = await app.api("/api/notes/1", {
+    method: "PUT",
     headers: { "content-type": "application/json" },
     body: "not json",
   });
@@ -79,57 +98,87 @@ test("a body that is not JSON is the caller's mistake, not ours", async () => {
   assert.deepEqual(await broken.json(), { error: "That body is not JSON." });
 });
 
-test("register hands out a cookie, and the cookie is who you are", async () => {
+test("Better Auth's own endpoints answer under /api/auth, and the cookie is who you are", async () => {
   const app = await serve();
 
-  const registered = await app.api(
-    "/api/auth/register",
-    json({ email: "Salma@Example.test", password: "expelliarmus42" }),
-  );
-  assert.equal(registered.status, 201);
-  assert.deepEqual(await registered.json(), { user: { id: 1, email: "salma@example.test" } });
+  const registered = await app.api("/api/auth/sign-up/email", signUp("Salma@Example.test"));
+  assert.equal(registered.status, 200);
+  const created = (await registered.json()) as { user: { id: string; email: string; name: string } };
+  assert.equal(created.user.email, "salma@example.test");
 
-  const cookie = registered.headers.getSetCookie()[0].split(";")[0];
-  assert.match(cookie, /^portal_session=[0-9a-f]{64}$/);
-  assert.ok(
-    registered.headers.getSetCookie()[0].includes("HttpOnly"),
-    "the cookie is not readable by scripts",
-  );
-  assert.ok(
-    registered.headers.getSetCookie()[0].includes("Secure"),
-    "the request was https, so the cookie never leaves without Secure",
-  );
+  const cookie = cookieOf(registered);
+  assert.match(cookie, /^better-auth\.session_token=/);
+  assert.match(registered.headers.getSetCookie().join("; "), /HttpOnly/i);
 
   const me = await app.api("/api/me", { headers: { cookie } });
   assert.equal(me.status, 200);
-  assert.deepEqual(await me.json(), { user: { id: 1, email: "salma@example.test" } });
+  assert.deepEqual(await me.json(), {
+    // Only the address is normalised; the name is whatever sign-up was given.
+    user: { id: created.user.id, email: "salma@example.test", name: "Salma" },
+  });
 
   assert.equal((await app.api("/api/me")).status, 401);
   assert.equal((await app.api("/api/favorites")).status, 401);
 
-  const signedOut = await app.api("/api/auth/logout", json({}, cookie));
-  assert.equal(signedOut.status, 204);
-  assert.match(signedOut.headers.getSetCookie()[0], /Max-Age=0/);
+  const signedOut = await app.api("/api/auth/sign-out", json({}, cookie));
+  assert.equal(signedOut.status, 200);
   assert.equal(
     (await app.api("/api/me", { headers: { cookie } })).status,
     401,
-    "the cookie died with the session",
+    "the session died with the sign-out",
   );
 });
 
-test("over plain http — how wrangler dev serves it — the cookie drops Secure", async () => {
+test("signing in again over the same address works, and a bad password does not", async () => {
   const app = await serve();
+  await app.api("/api/auth/sign-up/email", signUp("salma@example.test"));
 
-  const registered = await app.overHttp(
-    "/api/auth/register",
+  const wrong = await app.api(
+    "/api/auth/sign-in/email",
+    json({ email: "salma@example.test", password: "expelliarmus43" }),
+  );
+  assert.ok(wrong.status >= 400, `expected a refusal, got ${wrong.status}`);
+
+  const good = await app.api(
+    "/api/auth/sign-in/email",
     json({ email: "salma@example.test", password: "expelliarmus42" }),
   );
-  const cookie = registered.headers.getSetCookie()[0];
+  assert.equal(good.status, 200);
+  assert.equal((await app.api("/api/me", { headers: { cookie: cookieOf(good) } })).status, 200);
+});
 
-  assert.equal(registered.status, 201);
-  assert.match(cookie, /^portal_session=[0-9a-f]{64}; Path=\/; HttpOnly; SameSite=Lax/);
-  assert.ok(!cookie.includes("Secure"), "a browser would refuse it over http");
-  assert.equal((await app.overHttp("/api/me", { headers: { cookie: cookie.split(";")[0] } })).status, 200);
+test("an address it has never seen works with no configuration", async () => {
+  // The Worker builds auth per request, so the address is whatever the request
+  // was addressed to: workers.dev, a custom domain, localhost — no var, and no
+  // second place to remember. A stranger's origin is still refused, because the
+  // trusted origin comes from the request's URL and not from its Origin header.
+  const address = "https://hogwarts.example.test";
+  const world = await makeWorld([[character()]], { origin: address });
+  const app = createApp({ services: world.services, auth: world.auth });
+
+  const signUpFrom = (origin: string) =>
+    app.fetch(
+      new Request(`${address}/api/auth/sign-up/email`, {
+        method: "POST",
+        headers: { "content-type": "application/json", origin },
+        body: JSON.stringify({ email: "new@example.test", password: "expelliarmus42", name: "new" }),
+      }),
+    );
+
+  const stranger = await signUpFrom("https://evil.example");
+  assert.equal(stranger.status, 403);
+  assert.deepEqual(await stranger.json(), { message: "Invalid origin", code: "INVALID_ORIGIN" });
+
+  const ours = await signUpFrom(address);
+  assert.equal(ours.status, 200);
+  assert.match(ours.headers.getSetCookie().join("; "), /Secure/i, "https earns the Secure cookie");
+
+  const me = await app.fetch(
+    new Request(`${address}/api/me`, {
+      headers: { cookie: cookieOf(ours) },
+    }),
+  );
+  assert.equal(me.status, 200);
 });
 
 test("browsing, favoriting and noting a character over HTTP", async () => {
@@ -143,11 +192,8 @@ test("browsing, favoriting and noting a character over HTTP", async () => {
   const warm = await app.api("/api/characters?page=1");
   assert.equal(((await warm.json()) as { meta: { cached: boolean } }).meta.cached, true);
 
-  const registered = await app.api(
-    "/api/auth/register",
-    json({ email: "salma@example.test", password: "expelliarmus42" }),
-  );
-  const cookie = registered.headers.getSetCookie()[0].split(";")[0];
+  const registered = await app.api("/api/auth/sign-up/email", signUp("salma@example.test"));
+  const cookie = cookieOf(registered);
   const id = cold.data[0].id;
 
   const favorited = await app.api(`/api/favorites/${id}`, json({}, cookie));

@@ -63,7 +63,7 @@ export const markFamilies: readonly string[] = [
 ];
 
 /** The viewer half of a key. Anonymous readers get their own entries, never shared. */
-const viewerKey = (userId: number | null | undefined) =>
+const viewerKey = (userId: string | null | undefined) =>
   userId === null || userId === undefined ? "anonymous" : `u${userId}`;
 
 export type Viewer = {
@@ -83,7 +83,7 @@ export type Viewer = {
  * the marks flicker in a moment later — or, worse, how one account's mark is
  * read under another account's key.
  */
-export function viewerOf(status: Status, userId: number | null | undefined): Viewer {
+export function viewerOf(status: Status, userId: string | null | undefined): Viewer {
   return {
     key: viewerKey(userId),
     settled: status !== "checking",

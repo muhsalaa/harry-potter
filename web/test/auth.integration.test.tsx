@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 
 import { apiCalls, character, noSession, renderApp, stubApi } from "./harness";
 
-const reader = { user: { id: 7, email: "reader@example.com" } };
+const reader = { user: { id: "7f0d3a9e-6b1c-4a4e-9d3f-1c2b3a4d5e6f", email: "reader@example.com", name: "reader" } };
 
 /** Fill the form and press the button, the way a reader does. */
 function signIn() {
@@ -18,7 +18,7 @@ describe("signing in", () => {
   it("refuses a destination that leaves the app and lands the reader on the list", async () => {
     stubApi({
       "/api/me": noSession,
-      "/api/auth/login": reader,
+      "/api/auth/sign-in/email": reader,
       "/api/favorites": { data: [character({ slug: "hedwig", name: "Hedwig" })] },
     });
 
@@ -33,14 +33,14 @@ describe("signing in", () => {
 
     expect(await screen.findByRole("heading", { level: 1, name: "Your list" })).toBeDefined();
     expect(await screen.findByText("Hedwig")).toBeDefined();
-    expect(apiCalls).toContain("/api/auth/login");
+    expect(apiCalls).toContain("/api/auth/sign-in/email");
     expect(apiCalls).toContain("/api/favorites");
   });
 
   it("comes back to a destination inside the app", async () => {
     stubApi({
       "/api/me": noSession,
-      "/api/auth/login": reader,
+      "/api/auth/sign-in/email": reader,
       "/api/characters/hedwig": { data: character({ slug: "hedwig", name: "Hedwig" }) },
     });
 
@@ -55,7 +55,7 @@ describe("signing in", () => {
   it("shows what the server said when the password is wrong", async () => {
     stubApi({
       "/api/me": noSession,
-      "/api/auth/login": { status: 401, body: { error: "That email and password do not match." } },
+      "/api/auth/sign-in/email": { status: 401, body: { message: "Invalid email or password" } },
     });
 
     renderApp("/login");
@@ -63,7 +63,7 @@ describe("signing in", () => {
     signIn();
 
     expect(await screen.findByRole("alert")).toBeDefined();
-    expect(screen.getByText("That email and password do not match.")).toBeDefined();
+    expect(screen.getByText("Invalid email or password")).toBeDefined();
     // Still on the form, with the way out intact.
     expect(screen.getByRole("button", { name: "Sign in" })).toBeDefined();
   });
@@ -71,7 +71,7 @@ describe("signing in", () => {
 
 describe("creating an account", () => {
   it("asks for eight characters before it will send anything", async () => {
-    stubApi({ "/api/me": noSession, "/api/auth/register": reader });
+    stubApi({ "/api/me": noSession, "/api/auth/sign-up/email": reader });
 
     renderApp("/register");
 
@@ -82,6 +82,6 @@ describe("creating an account", () => {
 
     expect(screen.getByText(/shorter than 8 characters/)).toBeDefined();
     expect(screen.getByRole("button", { name: "Create account" })).toHaveProperty("disabled", true);
-    expect(apiCalls).not.toContain("/api/auth/register");
+    expect(apiCalls).not.toContain("/api/auth/sign-up/email");
   });
 });

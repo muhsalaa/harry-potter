@@ -7,7 +7,7 @@ import type { Dependencies } from "./ports.ts";
 
 export function createPersonal({ characters, personal }: Dependencies) {
   return {
-    async listFavorites(userId: number): Promise<{ data: CharacterPayload[] }> {
+    async listFavorites(userId: string): Promise<{ data: CharacterPayload[] }> {
       const rows = await personal.favorites(userId);
       const viewer = await personal.viewerState(userId, rows.map((row) => row.id));
 
@@ -19,7 +19,10 @@ export function createPersonal({ characters, personal }: Dependencies) {
      * leaves nothing behind. No count is ever returned — a Favorite is private
      * (ADR-0002).
      */
-    async toggleFavorite(userId: number, characterId: number | null): Promise<{ favorited: boolean }> {
+    async toggleFavorite(
+      userId: string,
+      characterId: number | null,
+    ): Promise<{ favorited: boolean }> {
       if (characterId === null || !(await characters.exists(characterId))) {
         throw notFound("No such character.");
       }
@@ -31,7 +34,7 @@ export function createPersonal({ characters, personal }: Dependencies) {
       return { favorited: !favorited };
     },
 
-    async readNote(userId: number, characterId: number | null): Promise<{ note: Note | null }> {
+    async readNote(userId: string, characterId: number | null): Promise<{ note: Note | null }> {
       return { note: characterId === null ? null : await personal.note(userId, characterId) };
     },
 
@@ -40,7 +43,7 @@ export function createPersonal({ characters, personal }: Dependencies) {
      * again overwrites in place. There is no delete and no history.
      */
     async saveNote(
-      userId: number,
+      userId: string,
       characterId: number | null,
       body: string,
     ): Promise<{ note: Note }> {

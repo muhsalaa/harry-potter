@@ -11,7 +11,7 @@ export type CharacterPage = {
 export function createCharacters({ catalog, characters, personal }: Dependencies) {
   return {
     /** Cache-through: a page the mirror has not seen is fetched once, then served locally. */
-    async list(page: number, viewerId: number | null): Promise<CharacterPage> {
+    async list(page: number, viewerId: string | null): Promise<CharacterPage> {
       const known = await characters.corpus();
       if (known && page > known.pages) {
         throw notFound(`The corpus has ${known.pages} pages.`);
@@ -42,7 +42,7 @@ export function createCharacters({ catalog, characters, personal }: Dependencies
       };
     },
 
-    async bySlug(slug: string, viewerId: number | null): Promise<CharacterPayload> {
+    async bySlug(slug: string, viewerId: string | null): Promise<CharacterPayload> {
       let row = await characters.bySlug(slug);
 
       if (!row) {

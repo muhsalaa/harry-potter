@@ -7,8 +7,13 @@ import { integer, primaryKey, sqliteTable, text } from "drizzle-orm/sqlite-core"
  * `test/schema.test.ts` holds this file to).
  *
  * A property is named after its column, so a select comes back shaped like the
- * row types in the domain — `CharacterRow`, `Corpus`, `StoredUser` — and no
+ * row types in the domain — `CharacterRow`, `Corpus`, `User` — and no
  * translation sits between the database and the code that reads it.
+ *
+ * The four `user` / `session` / `account` / `verification` tables are Better
+ * Auth's, not ours: their names, their columns, their timestamps as integer
+ * milliseconds. We describe them here so the adapter can query them and so a
+ * select can be typed; nothing in this app writes them by hand.
  */
 
 /** SQLite's own clock, as a default: the migrations write it, this repeats it. */
@@ -25,23 +30,74 @@ export const d1Migrations = sqliteTable("d1_migrations", {
   applied_at: text("applied_at").notNull().default(now()),
 });
 
-export const users = sqliteTable("users", {
-  id: integer("id").primaryKey(),
-  /** COLLATE NOCASE lives in the migration: lookups stay case-insensitive. */
+/* ── Better Auth ─────────────────────────────────────────────────────────────
+ * Dates are integer milliseconds and booleans are 0/1, because that is how the
+ * drizzle adapter reads and writes them for sqlite.
+ * ------------------------------------------------------------------------- */
+
+export const user = sqliteTable("user", {
+  id: text("id").primaryKey(),
+  name: text("name").notNull(),
   email: text("email").notNull().unique(),
-  password_hash: text("password_hash").notNull(),
-  created_at: text("created_at").notNull().default(now()),
+  emailVerified: integer("emailVerified", { mode: "boolean" }).notNull(),
+  image: text("image"),
+  createdAt: integer("createdAt", { mode: "timestamp_ms" }).notNull(),
+  updatedAt: integer("updatedAt", { mode: "timestamp_ms" }).notNull(),
 });
 
-export const sessions = sqliteTable("sessions", {
-  /** The sha256 of the cookie token, never the token itself. */
-  token_hash: text("token_hash").primaryKey(),
-  user_id: integer("user_id")
+export const session = sqliteTable("session", {
+  id: text("id").primaryKey(),
+  /** The cookie carries the token; this row is what makes it real. */
+  token: text("token").notNull().unique(),
+  userId: text("userId")
     .notNull()
-    .references(() => users.id, { onDelete: "cascade" }),
-  created_at: text("created_at").notNull().default(now()),
-  expires_at: text("expires_at").notNull(),
+    .references(() => user.id, { onDelete: "cascade" }),
+  expiresAt: integer("expiresAt", { mode: "timestamp_ms" }).notNull(),
+  ipAddress: text("ipAddress"),
+  userAgent: text("userAgent"),
+  createdAt: integer("createdAt", { mode: "timestamp_ms" }).notNull(),
+  updatedAt: integer("updatedAt", { mode: "timestamp_ms" }).notNull(),
 });
+
+export const account = sqliteTable("account", {
+  id: text("id").primaryKey(),
+  /** `credential` for a password, and the user's id as the account id. */
+  providerId: text("providerId").notNull(),
+  accountId: text("accountId").notNull(),
+  userId: text("userId")
+    .notNull()
+    .references(() => user.id, { onDelete: "cascade" }),
+  /** The scrypt hash, for a credential account. */
+  password: text("password"),
+  accessToken: text("accessToken"),
+  refreshToken: text("refreshToken"),
+  idToken: text("idToken"),
+  accessTokenExpiresAt: integer("accessTokenExpiresAt", { mode: "timestamp_ms" }),
+  refreshTokenExpiresAt: integer("refreshTokenExpiresAt", { mode: "timestamp_ms" }),
+  scope: text("scope"),
+  createdAt: integer("createdAt", { mode: "timestamp_ms" }).notNull(),
+  updatedAt: integer("updatedAt", { mode: "timestamp_ms" }).notNull(),
+});
+
+/** Single-use tokens; with no email flows configured, this stays empty. */
+export const verification = sqliteTable("verification", {
+  id: text("id").primaryKey(),
+  identifier: text("identifier").notNull(),
+  value: text("value").notNull(),
+  expiresAt: integer("expiresAt", { mode: "timestamp_ms" }).notNull(),
+  createdAt: integer("createdAt", { mode: "timestamp_ms" }).notNull(),
+  updatedAt: integer("updatedAt", { mode: "timestamp_ms" }).notNull(),
+});
+
+/** Only written when rate limiting is told to keep its counters in the database. */
+export const rateLimit = sqliteTable("rateLimit", {
+  id: text("id").primaryKey(),
+  key: text("key").notNull().unique(),
+  count: integer("count").notNull(),
+  lastRequest: integer("lastRequest").notNull(),
+});
+
+/* ── Ours ────────────────────────────────────────────────────────────────── */
 
 export const characters = sqliteTable("characters", {
   id: integer("id").primaryKey(),
@@ -87,12 +143,13 @@ export const corpus = sqliteTable("corpus", {
   fetched_at: text("fetched_at").notNull().default(now()),
 });
 
+/** Both point at Better Auth's `user.id`, which is a uuid string, not a number. */
 export const favorites = sqliteTable(
   "favorites",
   {
-    user_id: integer("user_id")
+    user_id: text("user_id")
       .notNull()
-      .references(() => users.id, { onDelete: "cascade" }),
+      .references(() => user.id, { onDelete: "cascade" }),
     character_id: integer("character_id")
       .notNull()
       .references(() => characters.id, { onDelete: "cascade" }),
@@ -104,9 +161,9 @@ export const favorites = sqliteTable(
 export const notes = sqliteTable(
   "notes",
   {
-    user_id: integer("user_id")
+    user_id: text("user_id")
       .notNull()
-      .references(() => users.id, { onDelete: "cascade" }),
+      .references(() => user.id, { onDelete: "cascade" }),
     character_id: integer("character_id")
       .notNull()
       .references(() => characters.id, { onDelete: "cascade" }),

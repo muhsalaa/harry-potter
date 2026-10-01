@@ -113,8 +113,12 @@ export function page(data: Character[], meta: Partial<CharacterList["meta"]> = {
 /** The app, at one address, with a cache of its own. */
 export function renderApp(at = "/") {
   const client = new QueryClient({
-    // A test that waits for a retry is a test about to time out.
-    defaultOptions: { queries: { retry: false } },
+    defaultOptions: {
+      // The app's own shape (src/query.ts), so the tests see the freshness a page
+      // really sees. `retry: false` is the one difference: a test that waits for
+      // a retry is a test about to time out.
+      queries: { staleTime: 60_000, retry: false },
+    },
   });
 
   return {

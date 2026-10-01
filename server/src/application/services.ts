@@ -1,4 +1,3 @@
-import { createAccounts } from "./accounts.ts";
 import { createCharacters } from "./characters.ts";
 import { createHealth } from "./health.ts";
 import { createPersonal } from "./personal.ts";
@@ -9,7 +8,6 @@ export function createServices(dependencies: Dependencies) {
   return {
     health: createHealth(dependencies),
     characters: createCharacters(dependencies),
-    accounts: createAccounts(dependencies),
     personal: createPersonal(dependencies),
   };
 }

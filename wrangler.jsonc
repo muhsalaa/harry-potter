@@ -10,6 +10,14 @@
 
   "vars": {
     "POTTERDB_BASE_URL": "https://api.potterdb.com/v1"
+    // No BETTER_AUTH_URL: auth reads the address it was asked on, so
+    // workers.dev, a custom domain and localhost all work unconfigured.
+  },
+
+  // Names only: the values live in `wrangler secret put` and .dev.vars, and
+  // declaring them here is what puts them in the generated Env type.
+  "secrets": {
+    "required": ["BETTER_AUTH_SECRET"]
   },
 
   // Built by `npm run build` (web/dist). Only /api/* runs the Worker; every

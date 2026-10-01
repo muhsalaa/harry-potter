@@ -1,8 +1,8 @@
-/** An account holder. Sessions stand for one of these. */
-export type User = { id: number; email: string };
-
-/** A User plus the credential that never leaves the application layer. */
-export type StoredUser = User & { passwordHash: string };
+/**
+ * A signed-in account holder, as Better Auth keeps them: a uuid, an address,
+ * and the display name its sign-up requires.
+ */
+export type User = { id: string; email: string; name: string };
 
 /** What a signed-in viewer is entitled to see about one Character. */
 export type ViewerState = { favorited: boolean; hasNote: boolean };

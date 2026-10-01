@@ -27,6 +27,7 @@ test("the migrations land in a fresh database, and the ledger says which", async
       "003-favorites.sql",
       "004-notes.sql",
       "005-page-size-16.sql",
+      "006-better-auth.sql",
     ],
   );
 
@@ -40,7 +41,18 @@ test("the migrations land in a fresh database, and the ledger says which", async
       // SQLite keeps its own tables too: miniflare's metadata, and the
       // AUTOINCREMENT counter behind wrangler's ledger.
       .filter((name) => !name.startsWith("_cf_") && name !== "sqlite_sequence"),
-    ["characters", "corpus", "d1_migrations", "favorites", "notes", "sessions", "users"],
+    [
+      "account",
+      "characters",
+      "corpus",
+      "d1_migrations",
+      "favorites",
+      "notes",
+      "rateLimit",
+      "session",
+      "user",
+      "verification",
+    ],
   );
 });
 

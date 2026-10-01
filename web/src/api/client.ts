@@ -34,7 +34,8 @@ export async function request<T>(path: string, init: RequestInit = {}): Promise<
     const body = await response.json().catch(() => null);
     throw new ApiError({
       status: response.status,
-      message: body?.error ?? `The server answered ${response.status}.`,
+      // Ours say `error`; Better Auth's own endpoints say `message`.
+      message: body?.error ?? body?.message ?? `The server answered ${response.status}.`,
     });
   }
 
