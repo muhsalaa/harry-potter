@@ -1,15 +1,15 @@
 import { useState } from "react";
-import { Link, Navigate, useNavigate, useSearchParams } from "react-router";
+import { Link, Navigate, useNavigate } from "react-router";
 
-import { useAuth } from "../auth/AuthContext";
-import { Button } from "../components/Button";
-import { Field } from "../components/Field";
-import { PageHead } from "../components/PageHead";
-import { safeNext } from "./LoginPage";
+import { useAuth } from "../auth/auth-context";
+import { signInHref, useNextDestination } from "../auth/next";
+import { Button } from "../components/button";
+import { Field } from "../components/field";
+import { PageHead } from "../components/page-head";
 
 export function RegisterPage() {
   const { status, user, register } = useAuth();
-  const [params] = useSearchParams();
+  const next = useNextDestination();
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -17,7 +17,7 @@ export function RegisterPage() {
   const [busy, setBusy] = useState(false);
 
   if (status === "authenticated" && user) {
-    return <Navigate to={safeNext(params.get("next"))} replace />;
+    return <Navigate to={next} replace />;
   }
 
   const tooShort = password.length > 0 && password.length < 8;
@@ -29,7 +29,7 @@ export function RegisterPage() {
 
     try {
       await register(email, password);
-      navigate(safeNext(params.get("next")), { replace: true });
+      navigate(next, { replace: true });
     } catch (problem) {
       setError(problem instanceof Error ? problem.message : "Creating the account failed.");
     } finally {
@@ -71,10 +71,7 @@ export function RegisterPage() {
             <Button type="submit" loading={busy} disabled={!email || password.length < 8}>
               Create account
             </Button>
-            <Link
-              to={`/login?next=${encodeURIComponent(safeNext(params.get("next")))}`}
-              className="label text-accent underline"
-            >
+            <Link to={signInHref(next)} className="label text-accent underline">
               Sign in instead
             </Link>
           </div>

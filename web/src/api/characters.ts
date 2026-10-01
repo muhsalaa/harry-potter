@@ -1,4 +1,4 @@
-import { apiGet, request } from "./client";
+import { request } from "./client";
 
 export type ViewerState = {
   favorited: boolean;
@@ -48,13 +48,13 @@ export type CharacterList = {
 };
 
 export const listCharacters = (page: number) =>
-  apiGet<CharacterList>(`/api/characters?page=${page}`);
+  request<CharacterList>(`/api/characters?page=${page}`);
 
 export const getCharacter = async (slug: string) =>
-  (await apiGet<{ data: Character }>(`/api/characters/${encodeURIComponent(slug)}`)).data;
+  (await request<{ data: Character }>(`/api/characters/${encodeURIComponent(slug)}`)).data;
 
 export const toggleFavorite = (characterId: number) =>
   request<{ favorited: boolean }>(`/api/favorites/${characterId}`, { method: "POST" });
 
 export const listFavorites = async () =>
-  (await apiGet<{ data: Character[] }>("/api/favorites")).data;
+  (await request<{ data: Character[] }>("/api/favorites")).data;

@@ -1,6 +1,6 @@
 import { Link } from "react-router";
 
-import { PageHead } from "../components/PageHead";
+import { PageHead } from "../components/page-head";
 import { PixelGlyph } from "../components/pixel";
 
 export function NotFoundPage() {

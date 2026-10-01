@@ -1,11 +1,13 @@
 import { Link } from "react-router";
 
-import { useAuth } from "../auth/AuthContext";
-import { CharacterGrid } from "../components/CharacterGrid";
-import { PageHead } from "../components/PageHead";
-import { CharacterGridSkeleton, Bar, LoadingLine } from "../components/Skeleton";
+import { signInHref, signUpHref } from "../auth/next";
+import { CharacterGrid } from "../components/character-grid";
+import { PageHead } from "../components/page-head";
 import { PixelGlyph } from "../components/pixel";
+import { CharacterGridSkeleton, Bar, LoadingLine } from "../components/skeleton";
 import { useFavorites } from "../hooks/favorites";
+import { useViewer } from "../hooks/viewer";
+
 
 /**
  * The list is a query, so the page has no loading flags of its own: whether the
@@ -14,16 +16,16 @@ import { useFavorites } from "../hooks/favorites";
  * "loading…".
  */
 export function FavoritesPage() {
-  const { status } = useAuth();
+  const viewer = useViewer();
   const favorites = useFavorites();
 
-  const pending = status === "checking" || (status === "authenticated" && favorites.isPending);
+  const pending = !viewer.settled || (viewer.signedIn && favorites.isPending);
 
   const count = favorites.data?.length ?? null;
   const line =
     count !== null
       ? `${count} marked · private to you`
-      : status === "authenticated"
+      : viewer.signedIn
         ? <Bar className="h-3 w-40" />
         : undefined;
 
@@ -43,14 +45,14 @@ export function FavoritesPage() {
           </>
         ) : null}
 
-        {status === "anonymous" ? (
+        {viewer.settled && !viewer.signedIn ? (
           <div className="frame max-w-[var(--hp-measure)] p-5">
             <p className="text-muted">A list belongs to an account. Sign in and it will be here.</p>
             <p className="mt-4 flex flex-wrap items-center gap-6">
-              <Link to="/login?next=/favorites" className="label text-accent underline">
+              <Link to={signInHref("/favorites")} className="label text-accent underline">
                 Sign in
               </Link>
-              <Link to="/register?next=/favorites" className="label text-accent underline">
+              <Link to={signUpHref("/favorites")} className="label text-accent underline">
                 Create an account
               </Link>
             </p>
@@ -64,7 +66,7 @@ export function FavoritesPage() {
           </p>
         ) : null}
 
-        {status === "authenticated" && favorites.isSuccess && count === 0 ? (
+        {viewer.signedIn && favorites.isSuccess && count === 0 ? (
           <div className="frame flex max-w-[var(--hp-measure)] flex-col gap-4 p-6">
             <PixelGlyph kind="quill" className="h-12 w-12" />
             <p className="text-muted">
@@ -79,7 +81,7 @@ export function FavoritesPage() {
           </div>
         ) : null}
 
-        {status === "authenticated" && favorites.data?.length ? (
+        {viewer.signedIn && favorites.data?.length ? (
           <CharacterGrid characters={favorites.data} />
         ) : null}
       </div>

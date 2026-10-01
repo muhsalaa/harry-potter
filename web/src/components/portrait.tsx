@@ -16,7 +16,7 @@ type PortraitProps = {
  * globally). The result is a real mosaic — the same material the hand-drawn
  * scene is made of — and roughly twenty times less data per portrait.
  */
-export function pixelUrl(image: string, width: number) {
+function pixelUrl(image: string, width: number) {
   const [path, query] = image.split(/(?=[?#])/u);
   const base = path.replace(/\/revision\/latest.*$/u, "");
   return `${base}/revision/latest/scale-to-width-down/${width}${query ?? ""}`;

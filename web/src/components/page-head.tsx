@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 
-import { Bar } from "./Skeleton";
+import { Bar } from "./skeleton";
 
 type PageHeadProps = {
   /**

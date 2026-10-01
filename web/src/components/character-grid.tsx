@@ -1,5 +1,5 @@
 import type { Character } from "../api/characters";
-import { CharacterPlate } from "./CharacterPlate";
+import { CharacterPlate } from "./character-plate";
 
 /**
  * The sprite bank. Tiles carry their own frames, so the grid adds no rules of

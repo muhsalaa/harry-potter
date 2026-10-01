@@ -1,10 +1,10 @@
 import { Link, useParams } from "react-router";
 
-import { PageHead, PageHeadSkeleton } from "../components/PageHead";
-import { Portrait } from "../components/Portrait";
-import { LoadingLine, RecordSkeleton } from "../components/Skeleton";
-import { FavoriteControl } from "../components/slots/FavoriteControl";
-import { NotePanel } from "../components/slots/NotePanel";
+import { PageHead, PageHeadSkeleton } from "../components/page-head";
+import { Portrait } from "../components/portrait";
+import { LoadingLine, RecordSkeleton } from "../components/skeleton";
+import { FavoriteControl } from "../components/slots/favorite-control";
+import { NotePanel } from "../components/slots/note-panel";
 import { useCharacter } from "../hooks/characters";
 
 import type { Character } from "../api/characters";

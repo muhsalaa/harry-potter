@@ -1,4 +1,4 @@
-import { apiGet, request } from "./client";
+import { request } from "./client";
 
 export type Note = {
   body: string;
@@ -6,7 +6,7 @@ export type Note = {
 };
 
 export const getNote = async (characterId: number) =>
-  (await apiGet<{ note: Note | null }>(`/api/notes/${characterId}`)).note;
+  (await request<{ note: Note | null }>(`/api/notes/${characterId}`)).note;
 
 export const saveNote = async (characterId: number, body: string) =>
   (

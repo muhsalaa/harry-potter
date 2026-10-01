@@ -1,9 +1,11 @@
 import { useState } from "react";
 import { Link } from "react-router";
 
-import { useAuth } from "../../auth/AuthContext";
+import { signInHref } from "../../auth/next";
 import { useToggleFavorite } from "../../hooks/characters";
-import { Button } from "../Button";
+import { useViewer } from "../../hooks/viewer";
+import { Button } from "../button";
+
 
 type FavoriteControlProps = {
   characterId: number;
@@ -21,18 +23,18 @@ type FavoriteControlProps = {
  * cache, so the tiles that carry the same mark catch up without being asked.
  */
 export function FavoriteControl({ characterId, slug, initiallyFavorited }: FavoriteControlProps) {
-  const { status } = useAuth();
+  const viewer = useViewer();
   const toggle = useToggleFavorite(characterId);
   const [favorited, setFavorited] = useState(initiallyFavorited);
   const [error, setError] = useState<string | null>(null);
 
-  if (status === "checking") return null;
+  if (!viewer.settled) return null;
 
-  if (status === "anonymous") {
+  if (!viewer.signedIn) {
     return (
       <p className="prose max-w-[var(--hp-measure)] text-muted">
-        <Link to={`/login?next=/characters/${slug}`}>Sign in</Link>{" "}
-        to keep this character in your list.
+        <Link to={signInHref(`/characters/${slug}`)}>Sign in</Link> to keep this character in your
+        list.
       </p>
     );
   }

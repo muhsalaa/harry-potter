@@ -1,12 +1,12 @@
 import { Route, Routes } from "react-router";
 
-import { App } from "./App";
-import { CharacterPage } from "./pages/CharacterPage";
-import { FavoritesPage } from "./pages/FavoritesPage";
-import { HomePage } from "./pages/HomePage";
-import { LoginPage } from "./pages/LoginPage";
-import { NotFoundPage } from "./pages/NotFoundPage";
-import { RegisterPage } from "./pages/RegisterPage";
+import { App } from "./app";
+import { CharacterPage } from "./pages/character-page";
+import { FavoritesPage } from "./pages/favorites-page";
+import { HomePage } from "./pages/home-page";
+import { LoginPage } from "./pages/login-page";
+import { NotFoundPage } from "./pages/not-found-page";
+import { RegisterPage } from "./pages/register-page";
 
 /**
  * The route table, owned by ticket 01. Feature slices fill in the page they own

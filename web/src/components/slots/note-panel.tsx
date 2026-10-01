@@ -2,10 +2,12 @@ import { useState } from "react";
 import { Link } from "react-router";
 
 import { NOTE_LIMIT } from "../../api/notes";
-import { useAuth } from "../../auth/AuthContext";
+import { signInHref } from "../../auth/next";
 import { useNote, useSaveNote } from "../../hooks/notes";
-import { Button } from "../Button";
-import { Bar, ProseSkeleton } from "../Skeleton";
+import { useViewer } from "../../hooks/viewer";
+import { Button } from "../button";
+import { Bar, ProseSkeleton } from "../skeleton";
+
 
 type NotePanelProps = {
   characterId: number;
@@ -21,19 +23,19 @@ type NotePanelProps = {
  * `dirty` is a comparison rather than a flag someone has to remember to clear.
  */
 export function NotePanel({ characterId, slug }: NotePanelProps) {
-  const { status } = useAuth();
+  const viewer = useViewer();
   const note = useNote(characterId);
   const save = useSaveNote(characterId);
   const [draft, setDraft] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  if (status === "checking") return null;
+  if (!viewer.settled) return null;
 
-  if (status === "anonymous") {
+  if (!viewer.signedIn) {
     return (
       <p className="prose max-w-[var(--hp-measure)] text-muted">
-        <Link to={`/login?next=/characters/${slug}`}>Sign in</Link> to keep a private note on
-        this character.
+        <Link to={signInHref(`/characters/${slug}`)}>Sign in</Link> to keep a private note on this
+        character.
       </p>
     );
   }

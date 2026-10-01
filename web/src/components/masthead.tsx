@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { NavLink } from "react-router";
 
-import { useAuth } from "../auth/AuthContext";
+import { useAuth } from "../auth/auth-context";
 
 const links = [
   { to: "/", label: "Index", end: true },

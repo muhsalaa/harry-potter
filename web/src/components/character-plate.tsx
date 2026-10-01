@@ -1,7 +1,7 @@
 import { Link } from "react-router";
 
 import type { Character } from "../api/characters";
-import { Portrait } from "./Portrait";
+import { Portrait } from "./portrait";
 
 type CharacterPlateProps = {
   character: Pick<Character, "slug" | "name" | "image" | "house" | "viewer">;

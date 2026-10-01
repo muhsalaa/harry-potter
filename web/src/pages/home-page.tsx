@@ -1,13 +1,13 @@
 import { useEffect } from "react";
 import { useSearchParams } from "react-router";
 
-import { CharacterGrid } from "../components/CharacterGrid";
+import { CharacterGrid } from "../components/character-grid";
 import {
   CharacterGridSkeleton,
   LoadingLine,
   NumeralSkeleton,
-} from "../components/Skeleton";
-import { ListToolbar } from "../components/slots/ListToolbar";
+} from "../components/skeleton";
+import { ListToolbar } from "../components/slots/list-toolbar";
 import { PixelScene } from "../components/pixel";
 import { useCharacters } from "../hooks/characters";
 

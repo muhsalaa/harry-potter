@@ -1,19 +1,15 @@
 import { useState } from "react";
-import { Link, Navigate, useNavigate, useSearchParams } from "react-router";
+import { Link, Navigate, useNavigate } from "react-router";
 
-import { useAuth } from "../auth/AuthContext";
-import { Button } from "../components/Button";
-import { Field } from "../components/Field";
-import { PageHead } from "../components/PageHead";
-
-/** Only same-site paths: a `next` that leaves the app is not honoured. */
-export function safeNext(value: string | null) {
-  return value && value.startsWith("/") && !value.startsWith("//") ? value : "/favorites";
-}
+import { useAuth } from "../auth/auth-context";
+import { signUpHref, useNextDestination } from "../auth/next";
+import { Button } from "../components/button";
+import { Field } from "../components/field";
+import { PageHead } from "../components/page-head";
 
 export function LoginPage() {
   const { status, user, signIn } = useAuth();
-  const [params] = useSearchParams();
+  const next = useNextDestination();
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -21,7 +17,7 @@ export function LoginPage() {
   const [busy, setBusy] = useState(false);
 
   if (status === "authenticated" && user) {
-    return <Navigate to={safeNext(params.get("next"))} replace />;
+    return <Navigate to={next} replace />;
   }
 
   async function submit(event: React.FormEvent) {
@@ -31,7 +27,7 @@ export function LoginPage() {
 
     try {
       await signIn(email, password);
-      navigate(safeNext(params.get("next")), { replace: true });
+      navigate(next, { replace: true });
     } catch (problem) {
       setError(problem instanceof Error ? problem.message : "Signing in failed.");
     } finally {
@@ -71,7 +67,7 @@ export function LoginPage() {
             <Button type="submit" loading={busy} disabled={!email || !password}>
               Sign in
             </Button>
-            <Link to={`/register?next=${encodeURIComponent(safeNext(params.get("next")))}`} className="label text-accent underline">
+            <Link to={signUpHref(next)} className="label text-accent underline">
               Create an account
             </Link>
           </div>

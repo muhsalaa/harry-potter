@@ -1,7 +1,7 @@
 import { Outlet } from "react-router";
 
-import { Masthead } from "./components/Masthead";
-import { SiteFooter } from "./components/SiteFooter";
+import { Masthead } from "./components/masthead";
+import { SiteFooter } from "./components/site-footer";
 
 /**
  * The shell every route renders inside. This file owns the page column, the

@@ -6,7 +6,11 @@ import { currentUser, signIn as apiSignIn, signOut as apiSignOut, register as ap
 import type { User } from "../api/auth";
 import { keys } from "../query";
 
-type Status = "checking" | "anonymous" | "authenticated";
+/**
+ * How far the session read has got. "checking" is not a third kind of reader —
+ * it is the absence of an answer yet, and every mark on the page waits for it.
+ */
+export type Status = "checking" | "anonymous" | "authenticated";
 
 type AuthValue = {
   status: Status;
@@ -66,7 +70,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     remember(null);
     // Whoever signs in next must not inherit a cache entry that carries the
     // marks of the account that just left, even though keys are viewer-scoped.
-    client.removeQueries({ predicate: (query) => query.queryKey[0] !== "session" });
+    client.removeQueries({ predicate: (query) => query.queryKey[0] !== keys.session()[0] });
   }, [client, remember]);
 
   const value = useMemo(
@@ -82,3 +86,4 @@ export function useAuth() {
   if (!value) throw new Error("useAuth was called outside AuthProvider.");
   return value;
 }
+

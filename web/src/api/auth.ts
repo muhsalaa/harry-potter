@@ -1,4 +1,4 @@
-import { ApiError, apiGet, request } from "./client";
+import { ApiError, request } from "./client";
 
 export type User = {
   id: number;
@@ -8,7 +8,7 @@ export type User = {
 /** Anonymous is the normal state, not a failure — so 401 resolves to null. */
 export async function currentUser(): Promise<User | null> {
   try {
-    return (await apiGet<{ user: User }>("/api/me")).user;
+    return (await request<{ user: User }>("/api/me")).user;
   } catch (error) {
     if (error instanceof ApiError && error.status === 401) return null;
     throw error;

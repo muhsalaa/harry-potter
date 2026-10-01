@@ -44,5 +44,3 @@ export async function request<T>(path: string, init: RequestInit = {}): Promise<
 
   return (await response.json()) as T;
 }
-
-export const apiGet = <T>(path: string) => request<T>(path);

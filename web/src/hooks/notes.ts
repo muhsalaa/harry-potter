@@ -1,17 +1,18 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { getNote, saveNote } from "../api/notes";
-import { useAuth } from "../auth/AuthContext";
-import { keys, viewerKey } from "../query";
+import { keys } from "../query";
+import { useViewer } from "./viewer";
+
 
 /** The one Note this account holds on this Character, or null — the absence is an answer. */
 export function useNote(characterId: number) {
-  const { status, user } = useAuth();
+  const viewer = useViewer();
 
   return useQuery({
-    queryKey: keys.note(viewerKey(user?.id), characterId),
+    queryKey: keys.note(viewer.key, characterId),
     queryFn: () => getNote(characterId),
-    enabled: status === "authenticated" && Boolean(user),
+    enabled: viewer.signedIn,
   });
 }
 
@@ -21,12 +22,12 @@ export function useNote(characterId: number) {
  */
 export function useSaveNote(characterId: number) {
   const client = useQueryClient();
-  const { user } = useAuth();
+  const viewer = useViewer();
 
   return useMutation({
     mutationFn: (body: string) => saveNote(characterId, body),
     onSuccess: (note) => {
-      client.setQueryData(keys.note(viewerKey(user?.id), characterId), note);
+      client.setQueryData(keys.note(viewer.key, characterId), note);
     },
   });
 }
