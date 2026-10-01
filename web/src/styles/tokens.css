@@ -1,6 +1,6 @@
 /* Hallmark · macrostructure: Split Studio · hero knobs: text-left, art-plate-right, numeral-below
  * theme: custom · vibe: "parchment catalogue, pixel tower, candle ink" · paper: oklch(94% 0.018 70) · accent: oklch(50% 0.14 62)
- * display: Jersey 15 · body: Geist · axes: light / display-heavy / warm
+ * type: Jersey 15 everywhere, Silkscreen for the two brand marks · axes: light / display-heavy / warm
  * enrichment: H9 hand-built SVG centrepiece (Tier B, 384 × 192 grid, no external assets)
  * genre: editorial (light warm paper, illustration-led index) · nav: N7 Brutal slab · footer: Ft5 Statement
  * studied: no · reference: attached mood image (candlelit tower) — palette intent and material only
@@ -9,6 +9,10 @@
  * hero band, and a 90rem (1440px) page column the shell centres itself inside.
  * The page now speaks one display voice (Jersey 15); Silkscreen is kept for the two
  * brand marks, so the hero title sets in the same face as every other heading.
+ * v1.3.0 — every word on every page is drawn in pixels: the body face was the last
+ * smooth typeface in the system and it is gone. Jersey 15 carries reading copy, labels
+ * and headings alike; size, colour and case carry the hierarchy it used to carry by
+ * contrast of style.
  *
  * Axis history in this project: editorial/Catalogue (light, roman-serif, warm) → dark/tower → this.
  * It differs from the dark run on paper band (dark → light) and from the editorial run on display
@@ -72,11 +76,13 @@
   --hp-art-book-d: oklch(62% 0.07 265);
   --hp-art-star: oklch(82% 0.045 265);
 
-  /* ── Type — display + body + one outlier register (2 + 1) ─────────────────
-     Both pixel faces carry a real fallback chain: if the pixel faces fail to
-     load the page degrades to monospace rather than to a default sans. */
+  /* ── Type — one pixel face, one brand stamp (1 + 1) ─────────────────────
+     Jersey 15 is the whole page: headings, body copy, labels, form fields. There
+     is no smooth typeface left to contrast against, so hierarchy is carried by
+     size, colour and case instead. Silkscreen is the single outlier and it belongs
+     to the two brand marks; it is also the fallback, so a failed font load lands on
+     another pixel face rather than on a default sans. */
   --hp-font-display: "Jersey 15", "Silkscreen", ui-monospace, monospace;
-  --hp-font-body: "Geist", ui-sans-serif, system-ui, sans-serif;
   --hp-font-glyph: "Silkscreen", "Jersey 15", ui-monospace, monospace;
 
   /* Ratio 1.25 (major third) from a 16px body. */

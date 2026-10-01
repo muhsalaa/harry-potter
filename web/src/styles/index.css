@@ -38,7 +38,6 @@
   --color-success: var(--hp-success);
 
   --font-display: var(--hp-font-display);
-  --font-body: var(--hp-font-body);
   --font-glyph: var(--hp-font-glyph);
 
   --text-xs: var(--hp-text-xs);
@@ -72,7 +71,7 @@
   body {
     background-color: var(--hp-paper);
     color: var(--hp-ink);
-    font-family: var(--hp-font-body);
+    font-family: var(--hp-font-display);
     font-size: var(--hp-text-base);
     line-height: 1.6;
   }
@@ -151,10 +150,10 @@
     background-color: var(--hp-paper-2);
   }
 
-  /* Labels are the quiet voice: uppercase body face, tracked, never above a
-     heading as a kicker (gate 54), and never below 12px — they carry the nav. */
+  /* Labels are the quiet voice: the pixel face, uppercase, tracked, never above
+     a heading as a kicker (gate 54), and never below 12px — they carry the nav. */
   .label {
-    font-family: var(--hp-font-body);
+    font-family: var(--hp-font-display);
     font-size: var(--hp-text-label);
     font-weight: 500;
     letter-spacing: 0.12em;
@@ -162,7 +161,7 @@
   }
 
   /* The outlier register: the two brand marks, nav and footer, and nothing
-     else. Everything a reader has to *read* is display or body. */
+     else. Everything a reader has to *read* is Jersey 15. */
   .glyph {
     font-family: var(--hp-font-glyph);
     font-weight: 700;
