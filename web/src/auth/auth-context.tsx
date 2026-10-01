@@ -44,15 +44,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // API answers 401 for that case, and currentUser() turns it into null.
   const status: Status = session.isPending ? "checking" : session.data ? "authenticated" : "anonymous";
 
+  /**
+   * A session read may still be on its way when credentials arrive — the sign-in
+   * form does not wait for it. Cancel it before writing: an answer that landed
+   * after this write would put the session we just replaced back, and the reader
+   * would be signed out on screen until the next reload.
+   */
   const remember = useCallback(
-    (found: User | null) => client.setQueryData(keys.session(), found),
+    async (found: User | null) => {
+      await client.cancelQueries({ queryKey: keys.session() });
+      client.setQueryData(keys.session(), found);
+    },
     [client],
   );
 
   const signIn = useCallback(
     async (email: string, password: string) => {
       const { user: found } = await apiSignIn(email, password);
-      remember(found);
+      await remember(found);
     },
     [remember],
   );
@@ -60,14 +69,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const register = useCallback(
     async (email: string, password: string) => {
       const { user: found } = await apiRegister(email, password);
-      remember(found);
+      await remember(found);
     },
     [remember],
   );
 
   const signOut = useCallback(async () => {
     await apiSignOut();
-    remember(null);
+    await remember(null);
     // Whoever signs in next must not inherit a cache entry that carries the
     // marks of the account that just left, even though keys are viewer-scoped.
     client.removeQueries({ predicate: (query) => query.queryKey[0] !== keys.session()[0] });
