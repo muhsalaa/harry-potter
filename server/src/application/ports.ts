@@ -17,36 +17,37 @@ export type Catalog = {
 
 /** The local mirror of the corpus. */
 export type CharacterStore = {
-  page(page: number): CharacterRow[];
-  bySlug(slug: string): CharacterRow | null;
-  exists(id: number): boolean;
-  savePage(characters: Character[], page: number): void;
+  page(page: number): Promise<CharacterRow[]>;
+  bySlug(slug: string): Promise<CharacterRow | null>;
+  exists(id: number): Promise<boolean>;
+  savePage(characters: Character[], page: number): Promise<void>;
   /** Saves one Character without touching the page it may already sit on. */
-  saveOne(character: Character): CharacterRow;
-  corpus(): Corpus | null;
-  saveCorpus(corpus: { records: number; pages: number }): void;
+  saveOne(character: Character): Promise<CharacterRow>;
+  corpus(): Promise<Corpus | null>;
+  saveCorpus(corpus: { records: number; pages: number }): Promise<void>;
 };
 
 /** Users, and the sessions that stand for them. */
 export type AccountStore = {
-  byEmail(email: string): StoredUser | null;
-  create(email: string, passwordHash: string): User;
+  byEmail(email: string): Promise<StoredUser | null>;
+  create(email: string, passwordHash: string): Promise<User>;
   /** Opens a session and returns the cookie token — the hash never leaves here. */
-  openSession(userId: number): string;
-  resolveSession(token: string): User | null;
-  closeSession(token: string): void;
-  sweepSessions(): number;
+  openSession(userId: number): Promise<string>;
+  resolveSession(token: string): Promise<User | null>;
+  closeSession(token: string): Promise<void>;
+  /** Removes the rows that can no longer be read; returns how many. */
+  sweepSessions(): Promise<number>;
 };
 
 /** Every Favorite and Note a User owns, plus the flags derived from them. */
 export type PersonalStore = {
-  favorites(userId: number): CharacterRow[];
-  hasFavorite(userId: number, characterId: number): boolean;
-  addFavorite(userId: number, characterId: number): void;
-  removeFavorite(userId: number, characterId: number): void;
-  note(userId: number, characterId: number): Note | null;
-  saveNote(userId: number, characterId: number, body: string): Note;
-  viewerState(userId: number | null, characterIds: number[]): Map<number, ViewerState>;
+  favorites(userId: number): Promise<CharacterRow[]>;
+  hasFavorite(userId: number, characterId: number): Promise<boolean>;
+  addFavorite(userId: number, characterId: number): Promise<void>;
+  removeFavorite(userId: number, characterId: number): Promise<void>;
+  note(userId: number, characterId: number): Promise<Note | null>;
+  saveNote(userId: number, characterId: number, body: string): Promise<Note>;
+  viewerState(userId: number | null, characterIds: number[]): Promise<Map<number, ViewerState>>;
 };
 
 /** Passwords are hashed on the way in and compared on the way back. */
@@ -56,7 +57,7 @@ export type Passwords = {
 };
 
 /** The migration ledger, as the health report reads it. */
-export type Migrations = { applied(): MigrationRecord[] };
+export type Migrations = { applied(): Promise<MigrationRecord[]> };
 
 /** Everything the application layer is given. It creates none of it. */
 export type Dependencies = {

@@ -3,19 +3,13 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "node --watch src/index.ts",
-    "start": "node src/index.ts",
     "test": "node --test",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "wrangler types worker-configuration.d.ts && tsc --noEmit"
   },
   "dependencies": {
-    "better-sqlite3": "^12.4.1",
-    "drizzle-orm": "^0.45.3",
-    "express": "^5.1.0"
+    "drizzle-orm": "^0.45.3"
   },
   "devDependencies": {
-    "@types/better-sqlite3": "^7.6.13",
-    "@types/express": "^5.0.6",
     "@types/node": "^24.13.3",
     "typescript": "~6.0.2"
   }

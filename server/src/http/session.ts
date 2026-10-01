@@ -1,54 +1,19 @@
-import type { NextFunction, Request, RequestHandler, Response } from "express";
-
 import { unauthorized } from "../domain/errors.ts";
 import type { User } from "../domain/model.ts";
 
 export const SESSION_COOKIE = "portal_session";
 const MAX_AGE_SECONDS = 60 * 60 * 24 * 30;
 
-type Caller = { user: User | null; token: string | null };
-
-/** Filled in by attachUser; a request that never passed through it reads as anonymous. */
-const callers = new WeakMap<Request, Caller>();
-
-/**
- * Resolves the cookie to a User on every request. An absent cookie is not an
- * error: most of the corpus is public.
- */
-export function attachUser(resolve: (token: string) => User | null): RequestHandler {
-  return (req: Request, _res: Response, next: NextFunction) => {
-    const token = readCookie(req, SESSION_COOKIE);
-    callers.set(req, { user: token ? resolve(token) : null, token });
-    next();
-  };
-}
-
-export function caller(req: Request): Caller {
-  return callers.get(req) ?? { user: null, token: null };
-}
+/** Who the request is, resolved once before a route runs. */
+export type Caller = { user: User | null; token: string | null };
 
 /** The User behind the cookie, or an `unauthorized` failure. */
-export function signedIn(req: Request): User {
-  const { user } = caller(req);
-  if (!user) throw unauthorized("Sign in first — this is yours alone.");
-  return user;
+export function signedIn(caller: Caller): User {
+  if (!caller.user) throw unauthorized("Sign in first — this is yours alone.");
+  return caller.user;
 }
 
-function cookieAttributes(maxAge: number): string {
-  const secure = process.env.NODE_ENV === "production" ? "; Secure" : "";
-  return `; Path=/; HttpOnly; SameSite=Lax; Max-Age=${maxAge}${secure}`;
-}
-
-export function setSessionCookie(res: Response, token: string): void {
-  res.append("Set-Cookie", `${SESSION_COOKIE}=${token}${cookieAttributes(MAX_AGE_SECONDS)}`);
-}
-
-export function clearSessionCookie(res: Response): void {
-  res.append("Set-Cookie", `${SESSION_COOKIE}=${cookieAttributes(0)}`);
-}
-
-export function readCookie(req: Request, name: string): string | null {
-  const header = req.headers.cookie;
+export function readCookie(header: string | null, name: string): string | null {
   if (!header) return null;
 
   for (const part of header.split(";")) {
@@ -57,4 +22,18 @@ export function readCookie(req: Request, name: string): string | null {
   }
 
   return null;
+}
+
+/** The cookie a signed-in browser gets back. https is what earns `Secure`. */
+export function sessionCookie(token: string, secure: boolean): string {
+  return `${SESSION_COOKIE}=${token}${attributes(MAX_AGE_SECONDS, secure)}`;
+}
+
+/** The same cookie, emptied: signing out is the browser forgetting it. */
+export function clearedSessionCookie(secure: boolean): string {
+  return `${SESSION_COOKIE}=${attributes(0, secure)}`;
+}
+
+function attributes(maxAge: number, secure: boolean): string {
+  return `; Path=/; HttpOnly; SameSite=Lax; Max-Age=${maxAge}${secure ? "; Secure" : ""}`;
 }

@@ -3,23 +3,25 @@ import { integer, primaryKey, sqliteTable, text } from "drizzle-orm/sqlite-core"
 
 /**
  * The tables as drizzle sees them. Nothing here creates anything: the DDL is
- * the .sql files in `migrations/`, and `migrate.test.ts` holds the two in step.
+ * the .sql files in `migrations/`, which wrangler applies to D1 (and which
+ * `test/schema.test.ts` holds this file to).
  *
  * A property is named after its column, so a select comes back shaped like the
  * row types in the domain — `CharacterRow`, `Corpus`, `StoredUser` — and no
- * translation sits between the database and the code that reads it. Adding a
- * column to a table is this file plus a migration, and nothing else.
- *
- * Only the tables are described. The engine is the driver's business
- * (`database.ts`: better-sqlite3 today, D1 tomorrow), and the same tables
- * serve either.
+ * translation sits between the database and the code that reads it.
  */
 
 /** SQLite's own clock, as a default: the migrations write it, this repeats it. */
 const now = () => sql`(datetime('now'))`;
 
-export const schemaMigrations = sqliteTable("schema_migrations", {
-  name: text("name").primaryKey(),
+/**
+ * Wrangler's own ledger, created by `wrangler d1 migrations apply` — the name
+ * and the columns are its, not ours. The health report reads it back.
+ */
+export const d1Migrations = sqliteTable("d1_migrations", {
+  id: integer("id").primaryKey(),
+  /** UNIQUE, and nullable: the DDL is wrangler's, and this describes it exactly. */
+  name: text("name").unique(),
   applied_at: text("applied_at").notNull().default(now()),
 });
 

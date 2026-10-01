@@ -12,23 +12,23 @@ export function createCharacters({ catalog, characters, personal }: Dependencies
   return {
     /** Cache-through: a page the mirror has not seen is fetched once, then served locally. */
     async list(page: number, viewerId: number | null): Promise<CharacterPage> {
-      const known = characters.corpus();
+      const known = await characters.corpus();
       if (known && page > known.pages) {
         throw notFound(`The corpus has ${known.pages} pages.`);
       }
 
-      let rows = characters.page(page);
+      let rows = await characters.page(page);
       const cached = rows.length > 0;
 
       if (!cached) {
         const fresh = await catalog.page(page, PAGE_SIZE);
-        characters.savePage(fresh.characters, fresh.page);
-        characters.saveCorpus(fresh);
-        rows = characters.page(page);
+        await characters.savePage(fresh.characters, fresh.page);
+        await characters.saveCorpus(fresh);
+        rows = await characters.page(page);
       }
 
-      const corpus = characters.corpus();
-      const viewer = personal.viewerState(viewerId, rows.map((row) => row.id));
+      const corpus = await characters.corpus();
+      const viewer = await personal.viewerState(viewerId, rows.map((row) => row.id));
 
       return {
         data: rows.map((row) => toPayload(row, viewer.get(row.id))),
@@ -43,15 +43,15 @@ export function createCharacters({ catalog, characters, personal }: Dependencies
     },
 
     async bySlug(slug: string, viewerId: number | null): Promise<CharacterPayload> {
-      let row = characters.bySlug(slug);
+      let row = await characters.bySlug(slug);
 
       if (!row) {
         const fresh = await catalog.bySlug(slug);
         if (!fresh) throw notFound("No such character.");
-        row = characters.saveOne(fresh);
+        row = await characters.saveOne(fresh);
       }
 
-      const viewer = personal.viewerState(viewerId, [row.id]);
+      const viewer = await personal.viewerState(viewerId, [row.id]);
       return toPayload(row, viewer.get(row.id));
     },
   };

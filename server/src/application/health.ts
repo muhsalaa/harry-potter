@@ -8,8 +8,8 @@ export type Health = {
 
 export function createHealth({ migrations }: Dependencies) {
   return {
-    status(): Health {
-      const applied = migrations.applied();
+    async status(): Promise<Health> {
+      const applied = await migrations.applied();
 
       return {
         ok: true,

@@ -2,14 +2,15 @@ import { fromPotterDb } from "../../domain/character.ts";
 import type { Character, PotterDbEntry } from "../../domain/character.ts";
 import type { Catalog, CatalogPage } from "../../application/ports.ts";
 
-const BASE_URL = process.env.POTTERDB_BASE_URL ?? "https://api.potterdb.com/v1";
+/** PotterDB's own address; wrangler.jsonc's vars carry it, and this is the fallback. */
+export const POTTERDB_BASE_URL = "https://api.potterdb.com/v1";
 
 type PotterDbPage = {
   data: PotterDbEntry[];
   meta: { pagination: { records: number; last: number; current: number } };
 };
 
-export function createPotterDbCatalog(baseUrl: string = BASE_URL): Catalog {
+export function createPotterDbCatalog(baseUrl: string = POTTERDB_BASE_URL): Catalog {
   /** 404 is an answer, not a failure: it is how a slug that does not exist reads. */
   async function getJson(path: string): Promise<unknown> {
     const response = await fetch(`${baseUrl}${path}`, {

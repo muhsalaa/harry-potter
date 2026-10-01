@@ -3,8 +3,9 @@ import { test } from "node:test";
 
 import { PAGE_SIZE } from "../src/domain/character.ts";
 import { character, makeWorld, rejects, registerUser } from "./harness.ts";
+
 test("the first view of a page fetches it, and every later view is served from the mirror", async () => {
-  const { services, catalog } = makeWorld([[character()]]);
+  const { services, catalog } = await makeWorld([[character()]]);
 
   const first = await services.characters.list(1, null);
   assert.equal(first.meta.cached, false);
@@ -20,7 +21,7 @@ test("the first view of a page fetches it, and every later view is served from t
 });
 
 test("each page keeps its own rows, in the order PotterDB gave them", async () => {
-  const { services } = makeWorld([
+  const { services } = await makeWorld([
     [character(), character({ potterdbId: "2", slug: "ron-weasley", name: "Ron Weasley" })],
     [character({ potterdbId: "3", slug: "hermione-grange", name: "Hermione Granger" })],
   ]);
@@ -36,14 +37,17 @@ test("each page keeps its own rows, in the order PotterDB gave them", async () =
 });
 
 test("a page past the end of the corpus is refused, naming its size", async () => {
-  const { services } = makeWorld([[character()]]);
+  const { services } = await makeWorld([[character()]]);
   await services.characters.list(1, null);
 
-  await assert.rejects(() => services.characters.list(9, null), rejects("not-found", "The corpus has 1 pages."));
+  await assert.rejects(
+    () => services.characters.list(9, null),
+    rejects("not-found", "The corpus has 1 pages."),
+  );
 });
 
 test("a slug fetch caches a character without filing him onto a page", async () => {
-  const { services, catalog } = makeWorld([
+  const { services, catalog } = await makeWorld([
     [character(), character({ potterdbId: "2", slug: "ron-weasley", name: "Ron Weasley" })],
     [character({ potterdbId: "3", slug: "draco-malfoy", name: "Draco Malfoy" })],
   ]);
@@ -65,13 +69,11 @@ test("a slug fetch caches a character without filing him onto a page", async () 
 });
 
 test("a page re-fetched files a character the mirror already held", async () => {
-  const { services, catalog } = makeWorld([
+  const { services, catalog } = await makeWorld([
     [character()],
     [character({ potterdbId: "3", slug: "draco-malfoy", name: "Draco Malfoy" })],
   ]);
 
-  // Held from a slug read, so the row exists with no page position on it —
-  // which is also how every row looks after a page size changes.
   await services.characters.bySlug("draco-malfoy", null);
 
   const page = await services.characters.list(2, null);
@@ -80,10 +82,10 @@ test("a page re-fetched files a character the mirror already held", async () => 
 });
 
 test("re-saving a cached character keeps the page it was cached under", async () => {
-  const { services, stores } = makeWorld([[character()]]);
+  const { services, stores } = await makeWorld([[character()]]);
   const page = await services.characters.list(1, null);
 
-  stores.characters.saveOne(character({ image: "https://example.test/harry.jpg" }));
+  await stores.characters.saveOne(character({ image: "https://example.test/harry.jpg" }));
 
   const list = await services.characters.list(1, null);
   assert.equal(list.meta.cached, true, "the row kept its place despite the save carrying no position");
@@ -93,19 +95,22 @@ test("re-saving a cached character keeps the page it was cached under", async ()
 });
 
 test("a slug nobody has is refused", async () => {
-  const { services } = makeWorld();
-  await assert.rejects(() => services.characters.bySlug("draco-malfoy", null), rejects("not-found", "No such character."));
+  const { services } = await makeWorld();
+  await assert.rejects(
+    () => services.characters.bySlug("draco-malfoy", null),
+    rejects("not-found", "No such character."),
+  );
 });
 
 test("a viewer sees their own flags; anyone else is not told they exist", async () => {
-  const world = makeWorld([[character()]]);
+  const world = await makeWorld([[character()]]);
   const { services } = world;
   const page = await services.characters.list(1, null);
   const id = page.data[0].id;
   const user = await registerUser(world);
 
-  services.personal.toggleFavorite(user.id, id);
-  services.personal.saveNote(user.id, id, "chosen one");
+  await services.personal.toggleFavorite(user.id, id);
+  await services.personal.saveNote(user.id, id, "chosen one");
 
   const mine = await services.characters.list(1, user.id);
   assert.deepEqual(mine.data[0].viewer, { favorited: true, hasNote: true });

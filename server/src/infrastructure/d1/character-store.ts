@@ -8,9 +8,6 @@ import { characters, corpus as corpusTable } from "./schema.ts";
 
 type CharacterInsert = typeof characters.$inferInsert;
 
-/** Writes take an executor: the store's db, or — inside savePage — its transaction. */
-type Writer = Pick<Db, "insert">;
-
 const POSITIONS = ["list_page", "list_index"];
 
 /** Everything a write carries: the Character's own columns, plus where it sits on a page. */
@@ -51,13 +48,11 @@ const values = (
     ...toColumns(character),
     list_page: position?.page ?? null,
     list_index: position?.index ?? null,
-    // The catalogue types every column as nullable text; the three required
-    // ones are filled by it, and the lists are JSON by the time they get here.
   }) as CharacterInsert;
 
 export function createCharacterStore(db: Db): CharacterStore {
-  const upsert = (writer: Writer, row: CharacterInsert) =>
-    writer
+  const upsert = (row: CharacterInsert) =>
+    db
       .insert(characters)
       .values(row)
       .onConflictDoUpdate({
@@ -65,53 +60,68 @@ export function createCharacterStore(db: Db): CharacterStore {
         set: { ...OVERWRITE, cached_at: sql`datetime('now')` },
       });
 
-  const bySlug = (slug: string): CharacterRow | null =>
-    db.select().from(characters).where(eq(characters.slug, slug)).get() ?? null;
+  const bySlug = async (slug: string): Promise<CharacterRow | null> =>
+    (await db.select().from(characters).where(eq(characters.slug, slug)).get()) ?? null;
 
   return {
-    page: (page) =>
-      db
+    async page(page) {
+      return db
         .select()
         .from(characters)
         .where(eq(characters.list_page, page))
         .orderBy(characters.list_index)
-        .all(),
+        .all();
+    },
 
     bySlug,
 
-    exists: (id) =>
-      db.select({ id: characters.id }).from(characters).where(eq(characters.id, id)).get() !==
-      undefined,
+    async exists(id) {
+      const row = await db
+        .select({ id: characters.id })
+        .from(characters)
+        .where(eq(characters.id, id))
+        .get();
 
-    savePage: (page_, page) => {
-      db.transaction((tx) => {
-        page_.forEach((character, index) => {
-          upsert(tx, values(character, { page, index })).run();
-        });
-      });
+      return row !== undefined;
     },
 
-    saveOne: (character) => {
-      upsert(db, values(character)).run();
+    /**
+     * A page is one write: D1 batches it into a single transaction, so half a
+     * page never lands. An empty page is nothing to write.
+     */
+    async savePage(page_, page) {
+      const [first, ...rest] = page_.map((character, index) =>
+        upsert(values(character, { page, index })),
+      );
 
-      const row = bySlug(character.slug);
+      if (first) await db.batch([first, ...rest]);
+    },
+
+    async saveOne(character) {
+      await upsert(values(character)).run();
+
+      const row = await bySlug(character.slug);
       if (!row) throw new Error(`Character ${character.slug} vanished after being saved.`);
       return row;
     },
 
-    corpus: () =>
-      db
-        .select({
-          records: corpusTable.records,
-          pages: corpusTable.pages,
-          fetchedAt: corpusTable.fetched_at,
-        })
-        .from(corpusTable)
-        .where(eq(corpusTable.id, 1))
-        .get() ?? null,
+    async corpus() {
+      return (
+        (await db
+          .select({
+            records: corpusTable.records,
+            pages: corpusTable.pages,
+            fetchedAt: corpusTable.fetched_at,
+          })
+          .from(corpusTable)
+          .where(eq(corpusTable.id, 1))
+          .get()) ?? null
+      );
+    },
 
-    saveCorpus: ({ records, pages }) => {
-      db.insert(corpusTable)
+    async saveCorpus({ records, pages }) {
+      await db
+        .insert(corpusTable)
         .values({ id: 1, records, pages })
         .onConflictDoUpdate({
           target: corpusTable.id,

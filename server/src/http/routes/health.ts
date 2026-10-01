@@ -1,13 +1,12 @@
-import { Router } from "express";
-
 import type { Services } from "../../application/services.ts";
+import type { Route } from "../app.ts";
 
-export function healthRouter(services: Services): Router {
-  const router = Router();
-
-  router.get("/health", (_req, res) => {
-    res.json(services.health.status());
-  });
-
-  return router;
+export function healthRoutes(services: Services): Route[] {
+  return [
+    {
+      method: "GET",
+      path: "/api/health",
+      handler: async () => Response.json(await services.health.status()),
+    },
+  ];
 }

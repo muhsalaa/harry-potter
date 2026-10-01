@@ -7,9 +7,9 @@ import type { Dependencies } from "./ports.ts";
 
 export function createPersonal({ characters, personal }: Dependencies) {
   return {
-    listFavorites(userId: number): { data: CharacterPayload[] } {
-      const rows = personal.favorites(userId);
-      const viewer = personal.viewerState(userId, rows.map((row) => row.id));
+    async listFavorites(userId: number): Promise<{ data: CharacterPayload[] }> {
+      const rows = await personal.favorites(userId);
+      const viewer = await personal.viewerState(userId, rows.map((row) => row.id));
 
       return { data: rows.map((row) => toPayload(row, viewer.get(row.id))) };
     },
@@ -19,32 +19,36 @@ export function createPersonal({ characters, personal }: Dependencies) {
      * leaves nothing behind. No count is ever returned — a Favorite is private
      * (ADR-0002).
      */
-    toggleFavorite(userId: number, characterId: number | null): { favorited: boolean } {
-      if (characterId === null || !characters.exists(characterId)) {
+    async toggleFavorite(userId: number, characterId: number | null): Promise<{ favorited: boolean }> {
+      if (characterId === null || !(await characters.exists(characterId))) {
         throw notFound("No such character.");
       }
 
-      const favorited = personal.hasFavorite(userId, characterId);
-      if (favorited) personal.removeFavorite(userId, characterId);
-      else personal.addFavorite(userId, characterId);
+      const favorited = await personal.hasFavorite(userId, characterId);
+      if (favorited) await personal.removeFavorite(userId, characterId);
+      else await personal.addFavorite(userId, characterId);
 
       return { favorited: !favorited };
     },
 
-    readNote(userId: number, characterId: number | null): { note: Note | null } {
-      return { note: characterId === null ? null : personal.note(userId, characterId) };
+    async readNote(userId: number, characterId: number | null): Promise<{ note: Note | null }> {
+      return { note: characterId === null ? null : await personal.note(userId, characterId) };
     },
 
     /**
      * One row per User and Character, so this is a save, not an append: saving
      * again overwrites in place. There is no delete and no history.
      */
-    saveNote(userId: number, characterId: number | null, body: string): { note: Note } {
-      if (characterId === null || !characters.exists(characterId)) {
+    async saveNote(
+      userId: number,
+      characterId: number | null,
+      body: string,
+    ): Promise<{ note: Note }> {
+      if (characterId === null || !(await characters.exists(characterId))) {
         throw notFound("No such character.");
       }
 
-      return { note: personal.saveNote(userId, characterId, checkNoteBody(body)) };
+      return { note: await personal.saveNote(userId, characterId, checkNoteBody(body)) };
     },
   };
 }

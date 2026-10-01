@@ -3,10 +3,19 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "concurrently -n api,web -c magenta,cyan \"npm --prefix server run dev\" \"npm --prefix web run dev\"",
+    "dev": "concurrently -n api,web -c magenta,cyan \"npm run dev:api\" \"npm --prefix web run dev\"",
+    "dev:api": "wrangler dev --port 3000",
+    "build": "npm --prefix web run build",
+    "deploy": "npm run build && wrangler deploy",
+    "deploy:dry": "npm run build && wrangler deploy --dry-run",
+    "types": "wrangler types server/worker-configuration.d.ts",
+    "db:migrate": "wrangler d1 migrations apply portal-db --remote",
+    "db:migrate:local": "wrangler d1 migrations apply portal-db --local",
+    "db:shell": "wrangler d1 execute portal-db --remote",
     "test": "npm --prefix server test && npm --prefix server run typecheck && npm --prefix web test && npm --prefix web run check:tokens && npm --prefix web run typecheck"
   },
   "devDependencies": {
-    "concurrently": "^9.2.1"
+    "concurrently": "^9.2.1",
+    "wrangler": "^4.145.0"
   }
 }

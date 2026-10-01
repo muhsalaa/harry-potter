@@ -1,0 +1,44 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+
+  // One deployment: the SPA and the API are the same origin, so the browser
+  // talks to /api directly and the session cookie stays first-party.
+  "name": "harrypotter-portal",
+  "main": "server/src/worker.ts",
+  "compatibility_date": "2026-10-01",
+  "compatibility_flags": ["nodejs_compat"],
+
+  "vars": {
+    "POTTERDB_BASE_URL": "https://api.potterdb.com/v1"
+  },
+
+  // Built by `npm run build` (web/dist). Only /api/* runs the Worker; every
+  // other path is an asset, and anything that misses is the SPA's own route.
+  "assets": {
+    "directory": "web/dist",
+    "binding": "ASSETS",
+    "not_found_handling": "single-page-application",
+    "run_worker_first": ["/api/*"]
+  },
+
+  "observability": {
+    "enabled": true,
+    "head_sampling_rate": 1
+  },
+
+  // Sessions expire by their own clock; this only takes the dead rows away.
+  "triggers": {
+    "crons": ["17 4 * * *"]
+  },
+
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "portal-db",
+      "database_id": "83d12702-c014-4207-a0e3-95eda9952c2a",
+      // The .sql files the Node server used to apply itself; wrangler owns them
+      // now and records them in D1's own d1_migrations ledger.
+      "migrations_dir": "server/migrations"
+    }
+  ]
+}

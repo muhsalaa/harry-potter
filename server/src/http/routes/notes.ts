@@ -1,26 +1,37 @@
-import { Router } from "express";
-
 import type { Services } from "../../application/services.ts";
+import type { Route } from "../app.ts";
 import { signedIn } from "../session.ts";
 
-function characterId(raw: string): number | null {
-  const id = Number.parseInt(raw, 10);
+/** Anything that is not a number reads as "no such character", never as 0. */
+function characterId(raw: string | undefined): number | null {
+  const id = Number.parseInt(String(raw ?? ""), 10);
   return Number.isFinite(id) ? id : null;
 }
 
-export function notesRouter(services: Services): Router {
-  const router = Router();
+export function noteRoutes(services: Services): Route[] {
+  return [
+    {
+      method: "GET",
+      path: "/api/notes/:characterId",
+      handler: async ({ params, caller }) =>
+        Response.json(
+          await services.personal.readNote(signedIn(caller).id, characterId(params.characterId)),
+        ),
+    },
+    {
+      method: "PUT",
+      path: "/api/notes/:characterId",
+      handler: async ({ params, caller, json }) => {
+        const body = await json();
 
-  router.get("/notes/:characterId", (req, res) => {
-    const id = characterId(req.params.characterId);
-    res.json(services.personal.readNote(signedIn(req).id, id));
-  });
-
-  router.put("/notes/:characterId", (req, res) => {
-    const id = characterId(req.params.characterId);
-    const body = typeof req.body?.body === "string" ? req.body.body : "";
-    res.json(services.personal.saveNote(signedIn(req).id, id, body));
-  });
-
-  return router;
+        return Response.json(
+          await services.personal.saveNote(
+            signedIn(caller).id,
+            characterId(params.characterId),
+            typeof body.body === "string" ? body.body : "",
+          ),
+        );
+      },
+    },
+  ];
 }

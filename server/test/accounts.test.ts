@@ -6,20 +6,27 @@ import { makeWorld, rejects } from "./harness.ts";
 
 const PASSWORD = "expelliarmus42";
 
+/** D1 hands rows back as `unknown`; a query in a test knows better. */
+const rows = async <T>(d1: D1Database, sql: string): Promise<T[]> =>
+  (await d1.prepare(sql).all()).results as T[];
+
 test("registering signs you in, under a normalised address", async () => {
-  const { services } = makeWorld();
+  const { services } = await makeWorld();
 
   const { user, token } = await services.accounts.register("  Salma@Example.TEST ", PASSWORD);
 
   assert.equal(user.email, "salma@example.test");
-  assert.deepEqual(services.accounts.resolve(token), { id: user.id, email: "salma@example.test" });
+  assert.deepEqual(await services.accounts.resolve(token), {
+    id: user.id,
+    email: "salma@example.test",
+  });
 });
 
 test("the session cookie is a token the database never stores", async () => {
-  const { services, db } = makeWorld();
+  const { services, d1 } = await makeWorld();
   const { token } = await services.accounts.register("salma@example.test", PASSWORD);
 
-  const stored = db.all<{ token_hash: string }>("SELECT token_hash FROM sessions");
+  const stored = await rows<{ token_hash: string }>(d1, "SELECT token_hash FROM sessions");
 
   assert.equal(stored.length, 1);
   assert.notEqual(stored[0].token_hash, token);
@@ -27,43 +34,61 @@ test("the session cookie is a token the database never stores", async () => {
 });
 
 test("bad credentials are refused, and nothing is written behind them", async () => {
-  const { services, db } = makeWorld();
+  const { services, d1 } = await makeWorld();
 
-  await assert.rejects(() => services.accounts.register("not-an-address", PASSWORD), rejects("invalid", "That email address is not one an address could have."));
-  await assert.rejects(() => services.accounts.register("salma@example.test", "short"), rejects("invalid", "Passwords here are at least 8 characters."));
+  await assert.rejects(
+    () => services.accounts.register("not-an-address", PASSWORD),
+    rejects("invalid", "That email address is not one an address could have."),
+  );
+  await assert.rejects(
+    () => services.accounts.register("salma@example.test", "short"),
+    rejects("invalid", "Passwords here are at least 8 characters."),
+  );
 
   const { user } = await services.accounts.register("salma@example.test", PASSWORD);
-  await assert.rejects(() => services.accounts.register("SALMA@example.test", PASSWORD), rejects("conflict", "That email already has an account. Sign in instead."));
+  await assert.rejects(
+    () => services.accounts.register("SALMA@example.test", PASSWORD),
+    rejects("conflict", "That email already has an account. Sign in instead."),
+  );
 
-  await assert.rejects(() => services.accounts.login("salma@example.test", "expelliarmus43"), rejects("unauthorized", "That email and password do not match an account."));
-  await assert.rejects(() => services.accounts.login("nobody@example.test", PASSWORD), rejects("unauthorized", "That email and password do not match an account."));
+  await assert.rejects(
+    () => services.accounts.login("salma@example.test", "expelliarmus43"),
+    rejects("unauthorized", "That email and password do not match an account."),
+  );
+  await assert.rejects(
+    () => services.accounts.login("nobody@example.test", PASSWORD),
+    rejects("unauthorized", "That email and password do not match an account."),
+  );
 
-  assert.equal(db.get<{ c: number }>("SELECT count(*) AS c FROM users")?.c, 1);
+  const counted = await rows<{ c: number }>(d1, "SELECT count(*) AS c FROM users");
+  assert.equal(Number(counted[0].c), 1);
 
   const { token } = await services.accounts.login("salma@example.test", PASSWORD);
-  assert.deepEqual(services.accounts.resolve(token), user);
+  assert.deepEqual(await services.accounts.resolve(token), user);
 });
 
 test("logging out revokes: the same cookie stops resolving", async () => {
-  const { services, db } = makeWorld();
+  const { services, d1 } = await makeWorld();
   const { token } = await services.accounts.register("salma@example.test", PASSWORD);
 
-  services.accounts.logout(token);
-  services.accounts.logout(token);
+  await services.accounts.logout(token);
+  await services.accounts.logout(token);
 
-  assert.equal(services.accounts.resolve(token), null);
-  assert.equal(db.get<{ c: number }>("SELECT count(*) AS c FROM sessions")?.c, 0);
+  assert.equal(await services.accounts.resolve(token), null);
+
+  const counted = await rows<{ c: number }>(d1, "SELECT count(*) AS c FROM sessions");
+  assert.equal(Number(counted[0].c), 0);
 });
 
 test("an expired session does not resolve and gets swept", async () => {
-  const { services, db, stores } = makeWorld();
+  const { services, d1, stores } = await makeWorld();
   const { token } = await services.accounts.register("salma@example.test", PASSWORD);
 
-  db.run("UPDATE sessions SET expires_at = datetime('now', '-1 day')");
+  await d1.prepare("UPDATE sessions SET expires_at = datetime('now', '-1 day')").run();
 
-  assert.equal(services.accounts.resolve(token), null);
-  assert.equal(services.accounts.resolve(null), null);
-  assert.equal(stores.accounts.sweepSessions(), 1);
+  assert.equal(await services.accounts.resolve(token), null);
+  assert.equal(await services.accounts.resolve(null), null);
+  assert.equal(await stores.accounts.sweepSessions(), 1);
 });
 
 test("a password verifies against its own hash and nothing else", async () => {

@@ -12,16 +12,16 @@ export function createAccounts({ accounts, passwords }: Dependencies) {
       const address = normalizeEmail(email);
       checkCredentials(address, password);
 
-      if (accounts.byEmail(address)) {
+      if (await accounts.byEmail(address)) {
         throw conflict("That email already has an account. Sign in instead.");
       }
 
-      const user = accounts.create(address, await passwords.hash(password));
-      return { user, token: accounts.openSession(user.id) };
+      const user = await accounts.create(address, await passwords.hash(password));
+      return { user, token: await accounts.openSession(user.id) };
     },
 
     async login(email: string, password: string): Promise<SignedIn> {
-      const found = accounts.byEmail(normalizeEmail(email));
+      const found = await accounts.byEmail(normalizeEmail(email));
 
       if (!found || !(await passwords.verify(password, found.passwordHash))) {
         throw unauthorized("That email and password do not match an account.");
@@ -29,17 +29,17 @@ export function createAccounts({ accounts, passwords }: Dependencies) {
 
       return {
         user: { id: found.id, email: found.email },
-        token: accounts.openSession(found.id),
+        token: await accounts.openSession(found.id),
       };
     },
 
     /** Signing out twice is not an error: no token means nothing to revoke. */
-    logout(token: string | null): void {
-      if (token) accounts.closeSession(token);
+    async logout(token: string | null): Promise<void> {
+      if (token) await accounts.closeSession(token);
     },
 
     /** The User behind a cookie token, or nobody. An absent token is not an error. */
-    resolve(token: string | null): User | null {
+    async resolve(token: string | null): Promise<User | null> {
       return token ? accounts.resolveSession(token) : null;
     },
   };

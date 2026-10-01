@@ -1,5 +1,3 @@
-import type { NextFunction, Request, Response } from "express";
-
 import { AppError } from "../domain/errors.ts";
 import type { ErrorKind } from "../domain/errors.ts";
 
@@ -15,17 +13,15 @@ const STATUS: Record<ErrorKind, number> = {
  * caller's to fix and is answered with its message; anything else is ours, is
  * logged, and is answered with a 502 so the two are never confused.
  */
-export function errorHandler(
-  error: unknown,
-  _req: Request,
-  res: Response,
-  _next: NextFunction,
-): void {
+export function failure(error: unknown): Response {
   if (error instanceof AppError) {
-    res.status(STATUS[error.kind]).json({ error: error.message });
-    return;
+    return Response.json({ error: error.message }, { status: STATUS[error.kind] });
   }
 
   console.error(error);
-  res.status(502).json({ error: error instanceof Error ? error.message : "The request failed." });
+
+  return Response.json(
+    { error: error instanceof Error ? error.message : "The request failed." },
+    { status: 502 },
+  );
 }
