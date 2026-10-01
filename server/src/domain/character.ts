@@ -34,8 +34,12 @@ export type Character = {
   wiki?: string | null;
 };
 
-/** How many Characters one page holds — ours and PotterDB's, kept in step. */
-export const PAGE_SIZE = 24;
+/**
+ * How many Characters one page holds — ours and PotterDB's, kept in step.
+ * A change here invalidates the mirror's remembered page positions and its
+ * page count, so it needs a migration: see 005-page-size-16.sql.
+ */
+export const PAGE_SIZE = 16;
 
 type Field = {
   key: keyof Character & string;

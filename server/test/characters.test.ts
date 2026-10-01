@@ -64,6 +64,21 @@ test("a slug fetch caches a character without filing him onto a page", async () 
   assert.ok(!list.data.some((entry) => entry.slug === "draco-malfoy"), "he was not filed onto a page");
 });
 
+test("a page re-fetched files a character the mirror already held", async () => {
+  const { services, catalog } = makeWorld([
+    [character()],
+    [character({ potterdbId: "3", slug: "draco-malfoy", name: "Draco Malfoy" })],
+  ]);
+
+  // Held from a slug read, so the row exists with no page position on it —
+  // which is also how every row looks after a page size changes.
+  await services.characters.bySlug("draco-malfoy", null);
+
+  const page = await services.characters.list(2, null);
+  assert.equal(catalog.fetches, 2);
+  assert.deepEqual(page.data.map((entry) => entry.slug), ["draco-malfoy"]);
+});
+
 test("re-saving a cached character keeps the page it was cached under", async () => {
   const { services, stores } = makeWorld([[character()]]);
   const page = await services.characters.list(1, null);

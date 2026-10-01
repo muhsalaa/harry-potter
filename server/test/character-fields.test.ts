@@ -66,7 +66,7 @@ test("a row becomes the API payload: our names, parsed lists, no potterdb_id", (
 
 test("an anonymous reader is not told about viewer state", () => {
   assert.ok(!("viewer" in toPayload(rowOf())));
-  assert.equal(PAGE_SIZE, 24);
+  assert.equal(PAGE_SIZE, 16);
 });
 
 test("a corrupt list column reads as empty rather than throwing", () => {

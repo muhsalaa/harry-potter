@@ -14,13 +14,15 @@ const COLUMNS = [...CHARACTER_COLUMNS, ...POSITIONS];
  * Every write goes through INSERT … ON CONFLICT so viewing a page twice leaves
  * exactly one row per Character, however many times it is fetched. Reading a
  * single Character must not wipe the page it was cached under, so a null
- * position never overwrites a known one.
+ * position never overwrites a known one — and the SET clause has to cover the
+ * position columns, or a page that is re-fetched (a cleared mirror, a changed
+ * page size) would be read back as empty.
  */
 const INSERT = `
   INSERT INTO characters (${COLUMNS.join(", ")})
   VALUES (${COLUMNS.map((column) => `@${column}`).join(", ")})
   ON CONFLICT (potterdb_id) DO UPDATE SET
-    ${CHARACTER_COLUMNS.filter((column) => column !== "potterdb_id")
+    ${COLUMNS.filter((column) => column !== "potterdb_id")
       .map((column) =>
         POSITIONS.has(column)
           ? `${column} = COALESCE(excluded.${column}, characters.${column})`

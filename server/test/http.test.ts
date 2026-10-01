@@ -35,12 +35,13 @@ test("health reports the migrations it booted with", async () => {
 
     assert.equal(response.status, 200);
     assert.equal(body.ok, true);
-    assert.equal(body.database.migrations, 4);
+    assert.equal(body.database.migrations, 5);
     assert.deepEqual(body.database.applied, [
       "001-users-and-sessions.sql",
       "002-characters.sql",
       "003-favorites.sql",
       "004-notes.sql",
+      "005-page-size-16.sql",
     ]);
 
     const missing = await fetch(app.url("/api/nonesuch"));
