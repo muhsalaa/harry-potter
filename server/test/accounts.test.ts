@@ -19,7 +19,7 @@ test("the session cookie is a token the database never stores", async () => {
   const { services, db } = makeWorld();
   const { token } = await services.accounts.register("salma@example.test", PASSWORD);
 
-  const stored = db.prepare("SELECT token_hash FROM sessions").all() as { token_hash: string }[];
+  const stored = db.all<{ token_hash: string }>("SELECT token_hash FROM sessions");
 
   assert.equal(stored.length, 1);
   assert.notEqual(stored[0].token_hash, token);
@@ -38,7 +38,7 @@ test("bad credentials are refused, and nothing is written behind them", async ()
   await assert.rejects(() => services.accounts.login("salma@example.test", "expelliarmus43"), rejects("unauthorized", "That email and password do not match an account."));
   await assert.rejects(() => services.accounts.login("nobody@example.test", PASSWORD), rejects("unauthorized", "That email and password do not match an account."));
 
-  assert.equal((db.prepare("SELECT count(*) AS c FROM users").get() as { c: number }).c, 1);
+  assert.equal(db.get<{ c: number }>("SELECT count(*) AS c FROM users")?.c, 1);
 
   const { token } = await services.accounts.login("salma@example.test", PASSWORD);
   assert.deepEqual(services.accounts.resolve(token), user);
@@ -52,14 +52,14 @@ test("logging out revokes: the same cookie stops resolving", async () => {
   services.accounts.logout(token);
 
   assert.equal(services.accounts.resolve(token), null);
-  assert.equal((db.prepare("SELECT count(*) AS c FROM sessions").get() as { c: number }).c, 0);
+  assert.equal(db.get<{ c: number }>("SELECT count(*) AS c FROM sessions")?.c, 0);
 });
 
 test("an expired session does not resolve and gets swept", async () => {
   const { services, db, stores } = makeWorld();
   const { token } = await services.accounts.register("salma@example.test", PASSWORD);
 
-  db.prepare("UPDATE sessions SET expires_at = datetime('now', '-1 day')").run();
+  db.run("UPDATE sessions SET expires_at = datetime('now', '-1 day')");
 
   assert.equal(services.accounts.resolve(token), null);
   assert.equal(services.accounts.resolve(null), null);

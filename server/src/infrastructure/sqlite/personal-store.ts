@@ -1,28 +1,17 @@
+import { and, desc, eq, getTableColumns, inArray, sql } from "drizzle-orm";
+
 import type { PersonalStore } from "../../application/ports.ts";
-import type { CharacterRow } from "../../domain/character.ts";
 import type { Note, ViewerState } from "../../domain/model.ts";
 import type { Db } from "./database.ts";
-
-const NOTE_COLUMNS = "SELECT body, updated_at AS updatedAt FROM notes";
+import { characters, favorites, notes } from "./schema.ts";
 
 export function createPersonalStore(db: Db): PersonalStore {
-  const selectFavorites = db.prepare(
-    `SELECT c.* FROM favorites f
-       JOIN characters c ON c.id = f.character_id
-      WHERE f.user_id = ?
-      ORDER BY f.created_at DESC, c.name`,
-  );
-  const selectFavorite = db.prepare(
-    "SELECT 1 FROM favorites WHERE user_id = ? AND character_id = ?",
-  );
-  const selectNote = db.prepare(`${NOTE_COLUMNS} WHERE user_id = ? AND character_id = ?`);
-  const upsertNote = db.prepare(
-    `INSERT INTO notes (user_id, character_id, body) VALUES (?, ?, ?)
-     ON CONFLICT (user_id, character_id) DO UPDATE SET body = excluded.body, updated_at = datetime('now')`,
-  );
-
   const note = (userId: number, characterId: number): Note | null =>
-    (selectNote.get(userId, characterId) as Note | undefined) ?? null;
+    db
+      .select({ body: notes.body, updatedAt: notes.updated_at })
+      .from(notes)
+      .where(and(eq(notes.user_id, userId), eq(notes.character_id, characterId)))
+      .get() ?? null;
 
   /** The `favorited` / `hasNote` flags the viewer is entitled to see, by row id. */
   const viewerState = (
@@ -31,48 +20,61 @@ export function createPersonalStore(db: Db): PersonalStore {
   ): Map<number, ViewerState> => {
     if (!userId || characterIds.length === 0) return new Map();
 
-    const holes = characterIds.map(() => "?").join(", ");
-    const marked = (table: "favorites" | "notes") =>
+    const marked = (table: typeof favorites | typeof notes) =>
       new Set(
-        (
-          db
-            .prepare(`SELECT character_id FROM ${table} WHERE user_id = ? AND character_id IN (${holes})`)
-            .all(userId, ...characterIds) as { character_id: number }[]
-        ).map((row) => row.character_id),
+        db
+          .select({ character_id: table.character_id })
+          .from(table)
+          .where(and(eq(table.user_id, userId), inArray(table.character_id, characterIds)))
+          .all()
+          .map((row) => row.character_id),
       );
 
-    const favorites = marked("favorites");
-    const notes = marked("notes");
+    const favorited = marked(favorites);
+    const annotated = marked(notes);
 
     return new Map(
-      characterIds.map((id) => [id, { favorited: favorites.has(id), hasNote: notes.has(id) }]),
+      characterIds.map((id) => [id, { favorited: favorited.has(id), hasNote: annotated.has(id) }]),
     );
   };
 
   return {
-    favorites: (userId) => selectFavorites.all(userId) as CharacterRow[],
+    favorites: (userId) =>
+      db
+        .select({ ...getTableColumns(characters) })
+        .from(favorites)
+        .innerJoin(characters, eq(characters.id, favorites.character_id))
+        .where(eq(favorites.user_id, userId))
+        .orderBy(desc(favorites.created_at), characters.name)
+        .all(),
 
     hasFavorite: (userId, characterId) =>
-      selectFavorite.get(userId, characterId) !== undefined,
+      db
+        .select({ character_id: favorites.character_id })
+        .from(favorites)
+        .where(and(eq(favorites.user_id, userId), eq(favorites.character_id, characterId)))
+        .get() !== undefined,
 
     addFavorite: (userId, characterId) => {
-      db.prepare("INSERT INTO favorites (user_id, character_id) VALUES (?, ?)").run(
-        userId,
-        characterId,
-      );
+      db.insert(favorites).values({ user_id: userId, character_id: characterId }).run();
     },
 
     removeFavorite: (userId, characterId) => {
-      db.prepare("DELETE FROM favorites WHERE user_id = ? AND character_id = ?").run(
-        userId,
-        characterId,
-      );
+      db.delete(favorites)
+        .where(and(eq(favorites.user_id, userId), eq(favorites.character_id, characterId)))
+        .run();
     },
 
     note,
 
     saveNote: (userId, characterId, body) => {
-      upsertNote.run(userId, characterId, body);
+      db.insert(notes)
+        .values({ user_id: userId, character_id: characterId, body })
+        .onConflictDoUpdate({
+          target: [notes.user_id, notes.character_id],
+          set: { body, updated_at: sql`datetime('now')` },
+        })
+        .run();
 
       const saved = note(userId, characterId);
       if (!saved) throw new Error("The note vanished after being saved.");

@@ -4,9 +4,12 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { test } from "node:test";
 
-import { openDatabase } from "../src/infrastructure/sqlite/database.ts";
+import { getTableColumns, getTableName } from "drizzle-orm";
+
+import { migrateDatabase, openDatabase } from "../src/infrastructure/sqlite/database.ts";
 import type { Db } from "../src/infrastructure/sqlite/database.ts";
 import { migrate } from "../src/infrastructure/sqlite/migrate.ts";
+import * as schema from "../src/infrastructure/sqlite/schema.ts";
 
 function migrationsDir() {
   const dir = mkdtempSync(join(tmpdir(), "portal-migrations-"));
@@ -16,7 +19,7 @@ function migrationsDir() {
   return dir;
 }
 
-const count = (db: Db, sql: string): number => (db.prepare(sql).get() as { c: number }).c;
+const count = (db: Db, sql: string): number => db.get<{ c: number }>(sql)?.c ?? 0;
 
 test("applies migrations in filename order, once each", () => {
   const db = openDatabase(":memory:");
@@ -45,4 +48,35 @@ test("a missing migrations directory is not a crash", () => {
   const db = openDatabase(":memory:");
   assert.deepEqual(migrate(db, join(tmpdir(), "portal-no-such-dir")), []);
   assert.equal(count(db, "SELECT count(*) AS c FROM schema_migrations"), 0);
+});
+
+/** What `PRAGMA table_info` says a table is made of. */
+type ColumnInfo = { name: string; notnull: number };
+
+test("the drizzle schema names exactly the columns the migrations create", () => {
+  const db = openDatabase(":memory:");
+  migrateDatabase(db);
+
+  for (const table of Object.values(schema)) {
+    const name = getTableName(table);
+    const described = Object.entries(getTableColumns(table)).map(([property, column]) => {
+      assert.equal(property, column.name, `${name}.${property} is keyed differently from its column`);
+      return column;
+    });
+    const created = db.all<ColumnInfo>(`PRAGMA table_info(${name})`);
+
+    assert.deepEqual(
+      described.map((column) => column.name).sort(),
+      created.map((column) => column.name).sort(),
+      `${name} has drifted from its migration`,
+    );
+
+    for (const column of created) {
+      const known = described.find((candidate) => candidate.name === column.name)!;
+      // SQLite does not flag an `INTEGER PRIMARY KEY` NOT NULL; drizzle does.
+      if (known.primary) continue;
+
+      assert.equal(known.notNull, column.notnull === 1, `${name}.${column.name} nullability has drifted`);
+    }
+  }
 });
