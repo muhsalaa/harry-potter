@@ -1,0 +1,10 @@
+node_modules/
+dist/
+.DS_Store
+*.local
+
+# the SQLite file is local state, not source
+server/data/
+
+# browser-verification artifacts
+.playwright-mcp/

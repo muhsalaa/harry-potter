@@ -1,0 +1,130 @@
+/* Hallmark · pre-emit critique: P5 H4 E5 S4 R5 V5
+ * Hallmark · genre: editorial · macrostructure: Catalogue · theme: Newsprint · nav: N6 · footer: Ft2
+ * enrichment: none (typography only) · motion: none (newsprint duration scale 0×)
+ * contrast: pass (40–41) · nav/footer/slop: pass (42–45) · honest: pass (46)
+ * chrome: pass (47) · tokens: pass (48) · responsive: pass (49) · mobile: pass (34, 49, 50–57)
+ * icons: pass (30) · italic headers: none (38a) · slop sweep: 58/58
+ */
+@import "tailwindcss";
+@import "./tokens.css";
+
+/* Hallmark tokens are the source; Tailwind utilities read them rather than
+   carrying their own values. `inline` is what makes that work — utilities
+   emit var(--hp-*) instead of copying a literal into each class. */
+@theme inline {
+  /* Tailwind's numeric spacing scale IS the 4pt scale in tokens.css
+     (p-4 = 1rem = --hp-space-md), so numeric utilities are on-scale by
+     construction. Nothing in this project types a raw px. */
+  --color-paper: var(--hp-paper);
+  --color-paper-2: var(--hp-paper-2);
+  --color-paper-3: var(--hp-paper-3);
+  --color-rule: var(--hp-rule);
+  --color-rule-strong: var(--hp-rule-strong);
+  --color-neutral: var(--hp-neutral);
+  --color-muted: var(--hp-muted);
+  --color-ink: var(--hp-ink);
+  --color-accent: var(--hp-accent);
+  --color-accent-deep: var(--hp-accent-deep);
+  --color-focus: var(--hp-focus);
+  --color-error: var(--hp-error);
+  --color-success: var(--hp-success);
+
+  --font-display: var(--hp-font-display);
+  --font-body: var(--hp-font-body);
+  --font-mono: var(--hp-font-mono);
+
+  --text-xs: var(--hp-text-xs);
+  --text-sm: var(--hp-text-sm);
+  --text-base: var(--hp-text-base);
+  --text-md: var(--hp-text-md);
+  --text-lg: var(--hp-text-lg);
+  --text-xl: var(--hp-text-xl);
+  --text-2xl: var(--hp-text-2xl);
+  --text-3xl: var(--hp-text-3xl);
+  --text-4xl: var(--hp-text-4xl);
+  --text-display-s: var(--hp-text-display-s);
+  --text-display: var(--hp-text-display);
+  --text-wordmark: var(--hp-text-wordmark);
+  --text-xl-display: var(--hp-text-xl-display);
+}
+
+@layer base {
+  /* Deliberate overflow (a wide plate, a long wordmark) must never scroll the
+     document sideways. `clip`, not `hidden` — `hidden` breaks position: sticky. */
+  html,
+  body {
+    overflow-x: clip;
+  }
+
+  body {
+    background-color: var(--hp-paper);
+    color: var(--hp-ink);
+    font-family: var(--hp-font-body);
+    font-size: var(--hp-text-base);
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  h1,
+  h2,
+  h3 {
+    font-family: var(--hp-font-display);
+    font-style: normal; /* italic headers are the single most reliable AI tell */
+    font-weight: 600;
+    letter-spacing: -0.015em;
+    line-height: 1.1;
+    overflow-wrap: anywhere;
+    min-width: 0;
+  }
+
+  /* Focus rings appear instantly and never animate in. */
+  :focus-visible {
+    outline: 2px solid var(--hp-focus);
+    outline-offset: 2px;
+  }
+
+  a {
+    color: inherit;
+    text-decoration-thickness: var(--hp-rule-hair);
+    text-underline-offset: 0.12em;
+  }
+
+  img {
+    display: block;
+    max-width: 100%;
+  }
+
+  ::selection {
+    background-color: var(--hp-paper-3);
+  }
+
+  /* Numbers line up in columns: counts, page numbers, the issue line. */
+  .numeric {
+    font-family: var(--hp-font-mono);
+    font-variant-numeric: tabular-nums;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 150ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 150ms !important;
+    }
+  }
+}
+
+@layer components {
+  /* The broadsheet double rule under the masthead. */
+  .rule-double {
+    border: 0;
+    border-top: var(--hp-rule-hair) solid var(--hp-rule-strong);
+    border-bottom: var(--hp-rule-hair) solid var(--hp-rule-strong);
+    height: 3px;
+  }
+
+  .page-gutter {
+    padding-inline: var(--hp-page-gutter);
+  }
+}

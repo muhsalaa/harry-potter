@@ -1,0 +1,95 @@
+/* Hallmark · genre: editorial · macrostructure: Catalogue · theme: Newsprint · enrichment: none · nav: N6 · footer: Ft2
+ * tone: editorial · anchor hue: warm (27° printed red) · paper: light oklch(96.5% 0.012 85)
+ * N6 knobs: issue=below wordmark · wordmark=3xl · rule=double
+ * diversification axes: paper-band=light · display-style=roman-serif · accent-hue=warm
+ * newsprint has no shipped theme spec (references/themes/ only carries carnival/cobalt/grid/hum/lumen),
+ * so this palette is constructed from color.md + typography.md and verified by scripts/check-tokens.mjs.
+ *
+ * This file is the ONLY place in the project where a colour or font value is written down.
+ * Everything else references these names. Adding a colour anywhere else is the drift gate 48 catches.
+ */
+
+:root {
+  /* ── Palette ───────────────────────────────────────────────────────────── */
+  --hp-paper: oklch(96.5% 0.012 85);
+  --hp-paper-2: oklch(94% 0.014 85);
+  --hp-paper-3: oklch(91% 0.014 82);
+  --hp-rule: oklch(80% 0.012 85);
+  --hp-rule-strong: oklch(59% 0.014 82);
+  --hp-neutral: oklch(56% 0.01 80);
+  --hp-muted: oklch(43% 0.01 75);
+  --hp-ink: oklch(20% 0.012 70);
+  --hp-accent: oklch(48% 0.15 27);
+  --hp-accent-deep: oklch(38% 0.13 27);
+  --hp-focus: oklch(52% 0.17 27);
+  --hp-error: oklch(47% 0.155 25);
+  --hp-success: oklch(46% 0.08 155);
+
+  /* ── Type — 2 + 1: display, body, one outlier register ─────────────────── */
+  --hp-font-display: "Newsreader", ui-serif, Georgia, serif;
+  --hp-font-body: "IBM Plex Sans", ui-sans-serif, system-ui, sans-serif;
+  --hp-font-mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, monospace;
+
+  /* Major third (1.25) from a 16px base. */
+  --hp-text-xs: 0.64rem;
+  --hp-text-sm: 0.8rem;
+  --hp-text-base: 1rem;
+  --hp-text-md: 1.25rem;
+  --hp-text-lg: 1.5625rem;
+  --hp-text-xl: 1.9531rem;
+  --hp-text-2xl: 2.4414rem;
+  --hp-text-3xl: 3.0518rem;
+  --hp-text-xl-display: clamp(1.75rem, 2.2vw + 1rem, 2.4414rem);
+  --hp-text-display-s: clamp(2.25rem, 4vw + 1rem, 4rem);
+  --hp-text-display: clamp(2.75rem, 5vw + 1rem, 5.25rem);
+  --hp-text-4xl: 3.8147rem;
+
+  /* The wordmark is a single-line object: a wrapped masthead reads as a broken
+     masthead, and gate 49 bans wrapped affordances. Sized so "WIZARDING INDEX"
+     fits one line at 320px — 7.2vw there ≈ 23px ≈ 217px of 281px available. */
+  --hp-text-wordmark: clamp(1.4375rem, 7.2vw, 3rem);
+  /* Display max stays ≤ 5.5rem (typography.md) — the ceiling is for short
+     statements only, which is why nothing here goes to 6rem. */
+
+  --hp-measure: 65ch;
+
+  /* ── Space — 4pt scale, nine steps. Tailwind's numeric scale is the same
+        scale (p-4 = 1rem = --hp-space-md); use either, never a raw px. ───── */
+  --hp-space-3xs: 0.125rem;
+  --hp-space-2xs: 0.25rem;
+  --hp-space-xs: 0.5rem;
+  --hp-space-sm: 0.75rem;
+  --hp-space-md: 1rem;
+  --hp-space-lg: 1.5rem;
+  --hp-space-xl: 2.5rem;
+  --hp-space-2xl: 4rem;
+  --hp-space-3xl: 6rem;
+  --hp-space-4xl: 9rem;
+
+  --hp-page-gutter: clamp(1rem, 6vw, 5rem);
+
+  /* ── Rules — the divided surface is this design's whole containment layer ─ */
+  --hp-rule-hair: 1px;
+
+  /* ── Radii — print has no rounded corners ───────────────────────────────── */
+  --hp-radius-flat: 0;
+  --hp-radius-tick: 2px;
+
+  /* ── Motion — newsprint's duration scale is 0×. The page does not move;
+        state changes are colour and rule-weight, applied instantly. ───────── */
+  --hp-ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --hp-ease-in: cubic-bezier(0.7, 0, 0.84, 0);
+  --hp-ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --hp-dur-micro: 120ms;
+  --hp-dur-short: 220ms;
+  --hp-dur-long: 420ms;
+
+  /* ── Depth — six named levels, never a freestyle number ─────────────────── */
+  --hp-z-base: 1;
+  --hp-z-raised: 10;
+  --hp-z-dropdown: 100;
+  --hp-z-sticky: 200;
+  --hp-z-modal: 400;
+  --hp-z-toast: 500;
+  --hp-z-tooltip: 600;
+}

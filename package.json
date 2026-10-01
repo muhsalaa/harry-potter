@@ -1,0 +1,12 @@
+{
+  "name": "harrypotter-portal",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "concurrently -n api,web -c magenta,cyan \"npm --prefix server run dev\" \"npm --prefix web run dev\"",
+    "test": "npm --prefix server test && npm --prefix web run check:tokens && npm --prefix web run typecheck"
+  },
+  "devDependencies": {
+    "concurrently": "^9.2.1"
+  }
+}
