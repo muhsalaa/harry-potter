@@ -1,5 +1,7 @@
 import type { ReactNode } from "react";
 
+import { Bar } from "./Skeleton";
+
 type PageHeadProps = {
   /**
    * The inventory line: a count, a range, the character's own facts. Omit it
@@ -22,6 +24,22 @@ export function PageHead({ line, title, lede }: PageHeadProps) {
       <h1 className={`font-display text-xl-display text-ink${line ? " mt-2" : ""}`}>{title}</h1>
       {lede ? <p className="prose mt-3 max-w-[var(--hp-measure)] text-muted">{lede}</p> : null}
       <hr className="mt-6 border-0 border-t-[3px] border-rule-strong" aria-hidden="true" />
+    </header>
+  );
+}
+
+/**
+ * The same header before its values exist: a bar where the inventory line goes,
+ * a bar where the name goes, the same rule. It lives here, under the header it
+ * copies, because a skeleton that drifts from its shape is worse than none.
+ * The bars are decorative — the page announces the wait with a live region.
+ */
+export function PageHeadSkeleton() {
+  return (
+    <header className="page-gutter pt-10 pb-8" aria-hidden="true">
+      <Bar className="h-3 w-44" />
+      <Bar className="mt-3.5 h-7 w-60" />
+      <hr className="mt-6 border-0 border-t-[3px] border-rule-strong" />
     </header>
   );
 }

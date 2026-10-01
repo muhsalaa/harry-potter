@@ -182,6 +182,14 @@
   .numeric {
     font-variant-numeric: tabular-nums;
   }
+
+  /* A block standing where a value will be. Two frames, hard cut, on the sprite
+     steps: the page's candle flicker, borrowed so the design gains no new motion.
+     Reduced motion keeps one frame — a still block still reads as "on its way". */
+  .skeleton {
+    background-color: var(--hp-paper-3);
+    animation: hp-flicker var(--hp-dur-long) var(--hp-ease-sprite) infinite;
+  }
 }
 
 /* Border width from the token, colour from whatever Tailwind border-* class sits

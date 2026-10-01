@@ -1,8 +1,10 @@
-import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
+import { createContext, useCallback, useContext, useMemo } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import type { ReactNode } from "react";
 
 import { currentUser, signIn as apiSignIn, signOut as apiSignOut, register as apiRegister } from "../api/auth";
 import type { User } from "../api/auth";
+import { keys } from "../query";
 
 type Status = "checking" | "anonymous" | "authenticated";
 
@@ -16,50 +18,60 @@ type AuthValue = {
 
 const AuthContext = createContext<AuthValue | null>(null);
 
+/**
+ * The session is server state like any other, so it lives in the same cache: the
+ * session query answers who we are, and the three actions write the answer back
+ * rather than keeping a second copy in component state. `status` is a view of
+ * that query — "checking" is simply "no answer yet".
+ *
+ * The session itself never goes stale on its own: it changes only when one of
+ * these actions changes it, and the cache is told when that happens.
+ */
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [status, setStatus] = useState<Status>("checking");
-  const [user, setUser] = useState<User | null>(null);
+  const client = useQueryClient();
 
-  // The session lives in a cookie, so the only way to know who we are is to ask.
-  useEffect(() => {
-    let live = true;
+  const session = useQuery({
+    queryKey: keys.session(),
+    queryFn: currentUser,
+    staleTime: Infinity,
+  });
 
-    currentUser()
-      .then((found) => {
-        if (!live) return;
-        setUser(found);
-        setStatus(found ? "authenticated" : "anonymous");
-      })
-      .catch(() => {
-        if (live) setStatus("anonymous");
-      });
+  // An unanswered or failed session read is a reader who is not signed in: the
+  // API answers 401 for that case, and currentUser() turns it into null.
+  const status: Status = session.isPending ? "checking" : session.data ? "authenticated" : "anonymous";
 
-    return () => {
-      live = false;
-    };
-  }, []);
+  const remember = useCallback(
+    (found: User | null) => client.setQueryData(keys.session(), found),
+    [client],
+  );
 
-  const signIn = useCallback(async (email: string, password: string) => {
-    const { user: found } = await apiSignIn(email, password);
-    setUser(found);
-    setStatus("authenticated");
-  }, []);
+  const signIn = useCallback(
+    async (email: string, password: string) => {
+      const { user: found } = await apiSignIn(email, password);
+      remember(found);
+    },
+    [remember],
+  );
 
-  const register = useCallback(async (email: string, password: string) => {
-    const { user: found } = await apiRegister(email, password);
-    setUser(found);
-    setStatus("authenticated");
-  }, []);
+  const register = useCallback(
+    async (email: string, password: string) => {
+      const { user: found } = await apiRegister(email, password);
+      remember(found);
+    },
+    [remember],
+  );
 
   const signOut = useCallback(async () => {
     await apiSignOut();
-    setUser(null);
-    setStatus("anonymous");
-  }, []);
+    remember(null);
+    // Whoever signs in next must not inherit a cache entry that carries the
+    // marks of the account that just left, even though keys are viewer-scoped.
+    client.removeQueries({ predicate: (query) => query.queryKey[0] !== "session" });
+  }, [client, remember]);
 
   const value = useMemo(
-    () => ({ status, user, signIn, register, signOut }),
-    [status, user, signIn, register, signOut],
+    () => ({ status, user: session.data ?? null, signIn, register, signOut }),
+    [status, session.data, signIn, register, signOut],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

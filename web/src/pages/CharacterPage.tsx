@@ -1,16 +1,14 @@
-import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router";
 
-import { getCharacter, type Character } from "../api/characters";
-import { PageHead } from "../components/PageHead";
+import { PageHead, PageHeadSkeleton } from "../components/PageHead";
 import { Portrait } from "../components/Portrait";
+import { LoadingLine, RecordSkeleton } from "../components/Skeleton";
 import { FavoriteControl } from "../components/slots/FavoriteControl";
 import { NotePanel } from "../components/slots/NotePanel";
+import { useCharacter } from "../hooks/characters";
+import { useSkeletonVisible } from "../hooks/useSkeletonVisible";
 
-type State =
-  | { kind: "loading" }
-  | { kind: "ready"; character: Character }
-  | { kind: "failed" };
+import type { Character } from "../api/characters";
 
 /** Only rows with something in them are rendered: an empty field is not a fact. */
 function recordRows(character: Character): Array<[string, string]> {
@@ -50,31 +48,20 @@ function recordRows(character: Character): Array<[string, string]> {
  */
 export function CharacterPage() {
   const { slug = "" } = useParams();
-  const [state, setState] = useState<State>({ kind: "loading" });
+  const record = useCharacter(slug);
+  const waking = useSkeletonVisible(record.isPending);
 
-  useEffect(() => {
-    let live = true;
-    setState({ kind: "loading" });
-
-    getCharacter(slug)
-      .then((character) => {
-        if (live) setState({ kind: "ready", character });
-      })
-      .catch((problem: unknown) => {
-        console.error("[character] the record did not load", problem);
-        if (live) setState({ kind: "failed" });
-      });
-
-    return () => {
-      live = false;
-    };
-  }, [slug]);
-
-  if (state.kind === "loading") {
-    return <p className="page-gutter label pt-10 text-muted">loading…</p>;
+  if (record.isPending) {
+    return waking ? (
+      <>
+        <LoadingLine>Opening the record…</LoadingLine>
+        <PageHeadSkeleton />
+        <RecordSkeleton />
+      </>
+    ) : null;
   }
 
-  if (state.kind === "failed") {
+  if (record.isError) {
     return (
       <>
         <PageHead line="not in the index" title="No entry for that name" />
@@ -87,7 +74,7 @@ export function CharacterPage() {
     );
   }
 
-  const { character } = state;
+  const character = record.data;
   const line =
     [character.house, character.bloodStatus, character.species]
       .filter((value) => typeof value === "string" && value.trim().length > 0)

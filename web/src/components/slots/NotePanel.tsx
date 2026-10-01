@@ -1,56 +1,34 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Link } from "react-router";
 
-import { NOTE_LIMIT, getNote, saveNote } from "../../api/notes";
+import { NOTE_LIMIT } from "../../api/notes";
 import { useAuth } from "../../auth/AuthContext";
+import { useNote, useSaveNote } from "../../hooks/notes";
+import { useSkeletonVisible } from "../../hooks/useSkeletonVisible";
 import { Button } from "../Button";
+import { Bar, ProseSkeleton } from "../Skeleton";
 
 type NotePanelProps = {
   characterId: number;
   slug: string;
 };
 
-type State =
-  | { kind: "loading" }
-  | { kind: "ready"; body: string; savedAt: string | null }
-  | { kind: "failed"; message: string };
-
 /**
  * One Note per User and Character. Saving again overwrites the same row in
  * place: no second note, no history, no delete — the note has a current value.
+ *
+ * The draft is the only state this panel owns: `null` means "nothing typed yet,
+ * show what is saved", so the saved Note in the cache stays the baseline and
+ * `dirty` is a comparison rather than a flag someone has to remember to clear.
  */
 export function NotePanel({ characterId, slug }: NotePanelProps) {
   const { status } = useAuth();
-  const [state, setState] = useState<State>({ kind: "loading" });
-  const [body, setBody] = useState("");
-  const [busy, setBusy] = useState(false);
+  const note = useNote(characterId);
+  const save = useSaveNote(characterId);
+  const [draft, setDraft] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (status !== "authenticated") return;
-
-    let live = true;
-    setState({ kind: "loading" });
-
-    getNote(characterId)
-      .then((note) => {
-        if (!live) return;
-        setBody(note?.body ?? "");
-        setState({ kind: "ready", body: note?.body ?? "", savedAt: note?.updatedAt ?? null });
-      })
-      .catch((problem: unknown) => {
-        if (live) {
-          setState({
-            kind: "failed",
-            message: problem instanceof Error ? problem.message : "The note did not load.",
-          });
-        }
-      });
-
-    return () => {
-      live = false;
-    };
-  }, [characterId, status]);
+  const waking = useSkeletonVisible(status === "authenticated" && note.isPending);
 
   if (status === "checking") return null;
 
@@ -63,31 +41,41 @@ export function NotePanel({ characterId, slug }: NotePanelProps) {
     );
   }
 
-  if (state.kind === "loading") return <p className="text-muted">Loading your note…</p>;
+  if (note.isPending) {
+    return waking ? (
+      <div className="max-w-[var(--hp-measure)]">
+        <p role="status" className="sr-only">
+          Opening your note…
+        </p>
+        <Bar className="h-3 w-20" />
+        <ProseSkeleton className="mt-2" lines={3} />
+      </div>
+    ) : null;
+  }
 
-  if (state.kind === "failed") {
+  if (note.isError) {
     return (
       <p role="alert" className="max-w-[var(--hp-measure)] text-error">
-        {state.message} Try reloading the page.
+        {note.error instanceof Error ? note.error.message : "The note did not load."} Try
+        reloading the page.
       </p>
     );
   }
 
-  const dirty = body !== state.body;
+  const saved = note.data?.body ?? "";
+  const body = draft ?? saved;
+  const dirty = draft !== null && draft !== saved;
 
   async function submit(event: React.FormEvent) {
     event.preventDefault();
-    setBusy(true);
     setError(null);
 
     try {
-      const note = await saveNote(characterId, body);
-      setBody(note.body);
-      setState({ kind: "ready", body: note.body, savedAt: note.updatedAt });
+      await save.mutateAsync(body);
+      // The cache now holds what was written, so the draft is no longer needed.
+      setDraft(null);
     } catch (problem) {
       setError(problem instanceof Error ? problem.message : "That did not save.");
-    } finally {
-      setBusy(false);
     }
   }
 
@@ -100,7 +88,7 @@ export function NotePanel({ characterId, slug }: NotePanelProps) {
       <textarea
         id="note"
         value={body}
-        onChange={(event) => setBody(event.target.value)}
+        onChange={(event) => setDraft(event.target.value)}
         maxLength={NOTE_LIMIT}
         rows={6}
         placeholder="What did you notice about this character?"
@@ -109,14 +97,14 @@ export function NotePanel({ characterId, slug }: NotePanelProps) {
       />
 
       <div className="mt-3 flex flex-wrap items-center gap-4">
-        <Button type="submit" loading={busy} disabled={!dirty || body.trim().length === 0}>
+        <Button type="submit" loading={save.isPending} disabled={!dirty || body.trim().length === 0}>
           Save note
         </Button>
 
         {/* Silent success: the saved line is the feedback, not a toast. */}
-        {!dirty && state.savedAt ? (
+        {!dirty && note.data?.updatedAt ? (
           <p className="label numeric text-magic">
-            saved · {new Date(`${state.savedAt.replace(" ", "T")}Z`).toLocaleString()}
+            saved · {new Date(`${note.data.updatedAt.replace(" ", "T")}Z`).toLocaleString()}
           </p>
         ) : null}
 

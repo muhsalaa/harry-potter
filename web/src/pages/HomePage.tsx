@@ -1,16 +1,16 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useSearchParams } from "react-router";
 
-import { listCharacters, type CharacterList } from "../api/characters";
-import { useAuth } from "../auth/AuthContext";
 import { CharacterGrid } from "../components/CharacterGrid";
+import {
+  CharacterGridSkeleton,
+  LoadingLine,
+  NumeralSkeleton,
+} from "../components/Skeleton";
 import { ListToolbar } from "../components/slots/ListToolbar";
 import { PixelScene } from "../components/pixel";
-
-type State =
-  | { kind: "loading" }
-  | { kind: "ready"; list: CharacterList }
-  | { kind: "failed" };
+import { useCharacters } from "../hooks/characters";
+import { useSkeletonVisible } from "../hooks/useSkeletonVisible";
 
 /**
  * Split Studio, hero revised. The tower leads the page as a full-width band —
@@ -26,33 +26,15 @@ export function HomePage() {
   const [params] = useSearchParams();
   const requested = Number.parseInt(params.get("page") ?? "1", 10);
   const page = Number.isFinite(requested) && requested > 0 ? requested : 1;
-  const { status } = useAuth();
 
-  const [state, setState] = useState<State>({ kind: "loading" });
-
-  useEffect(() => {
-    let live = true;
-    setState({ kind: "loading" });
-
-    listCharacters(page)
-      .then((list) => {
-        if (live) setState({ kind: "ready", list });
-      })
-      .catch((problem: unknown) => {
-        console.error("[index] the character list did not load", problem);
-        if (live) setState({ kind: "failed" });
-      });
-
-    return () => {
-      live = false;
-    };
-  }, [page, status]);
+  const list = useCharacters(page);
+  const waking = useSkeletonVisible(list.isPending);
 
   useEffect(() => {
     window.scrollTo(0, 0);
   }, [page]);
 
-  const meta = state.kind === "ready" ? state.list.meta : null;
+  const meta = list.data?.meta ?? null;
 
   return (
     <>
@@ -77,29 +59,36 @@ export function HomePage() {
               <span className="font-display numeric text-numeral leading-none text-accent">
                 {meta.records.toLocaleString("en-US")}
               </span>
-            ) : null}
+            ) : (
+              <NumeralSkeleton />
+            )}
             <h2 className="font-display text-xl-display mb-1 text-ink">The index</h2>
           </div>
           {meta ? <p className="label numeric text-muted">{meta.pages} pages</p> : null}
         </div>
 
         <div className="pt-8">
-          {state.kind === "failed" ? (
+          {list.isError ? (
             <p role="alert" className="max-w-[var(--hp-measure)] text-error">
               The index is not answering. Try page 1 again in a moment.
             </p>
           ) : null}
 
-          {state.kind === "loading" ? <p className="label text-muted">loading…</p> : null}
-
-          {state.kind === "ready" ? (
+          {list.isPending && waking ? (
             <>
-              <CharacterGrid characters={state.list.data} />
+              <LoadingLine>Opening the index…</LoadingLine>
+              <CharacterGridSkeleton />
+            </>
+          ) : null}
+
+          {list.data ? (
+            <>
+              <CharacterGrid characters={list.data.data} />
               <ListToolbar
-                page={state.list.meta.page}
-                pages={state.list.meta.pages}
-                records={state.list.meta.records}
-                size={state.list.meta.size}
+                page={list.data.meta.page}
+                pages={list.data.meta.pages}
+                records={list.data.meta.records}
+                size={list.data.meta.size}
               />
             </>
           ) : null}

@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { Link } from "react-router";
 
-import { toggleFavorite } from "../../api/characters";
 import { useAuth } from "../../auth/AuthContext";
+import { useToggleFavorite } from "../../hooks/characters";
 import { Button } from "../Button";
 
 type FavoriteControlProps = {
@@ -17,13 +17,14 @@ type FavoriteControlProps = {
  *
  * Two colours, two meanings: amber is the action, the cauldron teal is the
  * state you own. The press updates immediately and rolls back on failure — a
- * toggle that waits for a round trip feels broken.
+ * toggle that waits for a round trip feels broken. Settling also tells the
+ * cache, so the tiles that carry the same mark catch up without being asked.
  */
 export function FavoriteControl({ characterId, slug, initiallyFavorited }: FavoriteControlProps) {
   const { status } = useAuth();
+  const toggle = useToggleFavorite(characterId);
   const [favorited, setFavorited] = useState(initiallyFavorited);
   const [error, setError] = useState<string | null>(null);
-  const [busy, setBusy] = useState(false);
 
   if (status === "checking") return null;
 
@@ -40,16 +41,13 @@ export function FavoriteControl({ characterId, slug, initiallyFavorited }: Favor
     const previous = favorited;
     setFavorited(!previous);
     setError(null);
-    setBusy(true);
 
     try {
-      const result = await toggleFavorite(characterId);
+      const result = await toggle.mutateAsync();
       setFavorited(result.favorited);
     } catch (problem) {
       setFavorited(previous);
       setError(problem instanceof Error ? problem.message : "That did not save.");
-    } finally {
-      setBusy(false);
     }
   }
 
@@ -57,7 +55,7 @@ export function FavoriteControl({ characterId, slug, initiallyFavorited }: Favor
     <div>
       <Button
         onClick={press}
-        loading={busy}
+        loading={toggle.isPending}
         aria-pressed={favorited}
         variant={favorited ? "state" : "slab"}
       >

@@ -1,57 +1,49 @@
-import { useEffect, useState } from "react";
 import { Link } from "react-router";
 
-import { listFavorites, type Character } from "../api/characters";
 import { useAuth } from "../auth/AuthContext";
 import { CharacterGrid } from "../components/CharacterGrid";
 import { PageHead } from "../components/PageHead";
+import { CharacterGridSkeleton, Bar, LoadingLine } from "../components/Skeleton";
 import { PixelGlyph } from "../components/pixel";
+import { useFavorites } from "../hooks/favorites";
+import { useSkeletonVisible } from "../hooks/useSkeletonVisible";
 
-type State =
-  | { kind: "loading" }
-  | { kind: "ready"; characters: Character[] }
-  | { kind: "failed"; message: string };
-
+/**
+ * The list is a query, so the page has no loading flags of its own: whether the
+ * session is still being read or the list is still on its way, the page is
+ * simply waiting — and it draws the grid that is coming rather than the word
+ * "loading…".
+ */
 export function FavoritesPage() {
   const { status } = useAuth();
-  const [state, setState] = useState<State>({ kind: "loading" });
+  const favorites = useFavorites();
 
-  useEffect(() => {
-    if (status !== "authenticated") return;
+  const busy = status === "checking" || (status === "authenticated" && favorites.isPending);
+  const waking = useSkeletonVisible(busy);
 
-    let live = true;
-    setState({ kind: "loading" });
-
-    listFavorites()
-      .then((characters) => {
-        if (live) setState({ kind: "ready", characters });
-      })
-      .catch((problem: unknown) => {
-        if (live) {
-          setState({
-            kind: "failed",
-            message: problem instanceof Error ? problem.message : "Your list did not load.",
-          });
-        }
-      });
-
-    return () => {
-      live = false;
-    };
-  }, [status]);
-
-  const count = state.kind === "ready" ? state.characters.length : null;
+  const count = favorites.data?.length ?? null;
+  const line =
+    count !== null
+      ? `${count} marked · private to you`
+      : status === "authenticated"
+        ? <Bar className="h-3 w-40" />
+        : undefined;
 
   return (
     <>
       <PageHead
-        line={count === null ? undefined : `${count} marked · private to you`}
+        line={line}
         title="Your list"
         lede="The characters you have marked, most recently marked first. Nobody else can see this page, and no count of it appears anywhere."
       />
 
       <div className="page-gutter pb-16">
-        {status === "checking" ? <p className="label text-muted">loading…</p> : null}
+        {waking ? (
+          <>
+            <LoadingLine>Opening your list…</LoadingLine>
+            <CharacterGridSkeleton count={8} />
+          </>
+        ) : null}
 
         {status === "anonymous" ? (
           <div className="frame max-w-[var(--hp-measure)] p-5">
@@ -67,13 +59,14 @@ export function FavoritesPage() {
           </div>
         ) : null}
 
-        {state.kind === "failed" ? (
+        {favorites.isError ? (
           <p role="alert" className="max-w-[var(--hp-measure)] text-error">
-            {state.message} Reload the page to try again.
+            {favorites.error instanceof Error ? favorites.error.message : "Your list did not load."}{" "}
+            Reload the page to try again.
           </p>
         ) : null}
 
-        {status === "authenticated" && state.kind === "ready" && count === 0 ? (
+        {status === "authenticated" && favorites.isSuccess && count === 0 ? (
           <div className="frame flex max-w-[var(--hp-measure)] flex-col gap-4 p-6">
             <PixelGlyph kind="quill" className="h-12 w-12" />
             <p className="text-muted">
@@ -88,8 +81,8 @@ export function FavoritesPage() {
           </div>
         ) : null}
 
-        {status === "authenticated" && state.kind === "ready" && count ? (
-          <CharacterGrid characters={state.characters} />
+        {status === "authenticated" && favorites.data?.length ? (
+          <CharacterGrid characters={favorites.data} />
         ) : null}
       </div>
     </>
