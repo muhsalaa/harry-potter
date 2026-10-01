@@ -10,7 +10,6 @@ import {
 import { ListToolbar } from "../components/slots/ListToolbar";
 import { PixelScene } from "../components/pixel";
 import { useCharacters } from "../hooks/characters";
-import { useSkeletonVisible } from "../hooks/useSkeletonVisible";
 
 /**
  * Split Studio, hero revised. The tower leads the page as a full-width band —
@@ -29,7 +28,6 @@ export function HomePage() {
   const page = Number.isFinite(requested) && requested > 0 ? requested : 1;
 
   const list = useCharacters(page);
-  const waking = useSkeletonVisible(list.isPending);
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -74,7 +72,7 @@ export function HomePage() {
             </p>
           ) : null}
 
-          {list.isPending && waking ? (
+          {list.isPending ? (
             <>
               <LoadingLine>Opening the index…</LoadingLine>
               <CharacterGridSkeleton />

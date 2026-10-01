@@ -149,8 +149,9 @@ for (const path of walk(src)) {
 
 if (strays) failures.push(`${strays} colour literal(s) outside tokens.css`);
 
-// index.html cannot read CSS variables, so two of its values duplicate tokens:
-// the theme-color meta and the favicon's paper + accent hexes.
+// index.html cannot read CSS variables, so three of its values duplicate tokens:
+// the theme-color meta, the favicon's paper + accent hexes, and the inline
+// background that paints the frame before the stylesheet lands.
 const html = readFileSync(join(web, "index.html"), "utf8");
 const themeColor = html.match(/name="theme-color"\s+content="(#[0-9a-fA-F]{6})"/)?.[1];
 if (!themeColor) {
@@ -163,6 +164,21 @@ if (!themeColor) {
   const ok = drift < 0.01;
   if (!ok) failures.push(`index.html theme-color ${themeColor} has drifted from --hp-paper`);
   console.log(`${ok ? "ok  " : "FAIL"} theme-color   drift ${drift.toFixed(4)} from --hp-paper`);
+}
+
+// The pre-CSS frame is painted by an inline style, and it has to be paper for the
+// same reason the meta does: a refresh in dev shows it for a frame.
+const preCssPaper = html.match(/<style>[\s\S]*?background-color:\s*(#[0-9a-fA-F]{6})/)?.[1];
+if (!preCssPaper) {
+  failures.push("index.html has no inline paper background for the pre-CSS frame");
+} else {
+  const ok = preCssPaper.toLowerCase() === hexOf(token("paper"));
+  if (!ok) {
+    failures.push(
+      `the pre-CSS background ${preCssPaper} has drifted from --hp-paper (${hexOf(token("paper"))})`,
+    );
+  }
+  console.log(`${ok ? "ok  " : "FAIL"} pre-CSS paper  ${preCssPaper} vs --hp-paper ${hexOf(token("paper"))}`);
 }
 
 // The favicon data URI carries %23-prefixed hexes that must track the same two

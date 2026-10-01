@@ -4,7 +4,6 @@ import { Link } from "react-router";
 import { NOTE_LIMIT } from "../../api/notes";
 import { useAuth } from "../../auth/AuthContext";
 import { useNote, useSaveNote } from "../../hooks/notes";
-import { useSkeletonVisible } from "../../hooks/useSkeletonVisible";
 import { Button } from "../Button";
 import { Bar, ProseSkeleton } from "../Skeleton";
 
@@ -28,8 +27,6 @@ export function NotePanel({ characterId, slug }: NotePanelProps) {
   const [draft, setDraft] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  const waking = useSkeletonVisible(status === "authenticated" && note.isPending);
-
   if (status === "checking") return null;
 
   if (status === "anonymous") {
@@ -42,7 +39,7 @@ export function NotePanel({ characterId, slug }: NotePanelProps) {
   }
 
   if (note.isPending) {
-    return waking ? (
+    return (
       <div className="max-w-[var(--hp-measure)]">
         <p role="status" className="sr-only">
           Opening your note…
@@ -50,7 +47,7 @@ export function NotePanel({ characterId, slug }: NotePanelProps) {
         <Bar className="h-3 w-20" />
         <ProseSkeleton className="mt-2" lines={3} />
       </div>
-    ) : null;
+    );
   }
 
   if (note.isError) {

@@ -6,7 +6,6 @@ import { PageHead } from "../components/PageHead";
 import { CharacterGridSkeleton, Bar, LoadingLine } from "../components/Skeleton";
 import { PixelGlyph } from "../components/pixel";
 import { useFavorites } from "../hooks/favorites";
-import { useSkeletonVisible } from "../hooks/useSkeletonVisible";
 
 /**
  * The list is a query, so the page has no loading flags of its own: whether the
@@ -18,8 +17,7 @@ export function FavoritesPage() {
   const { status } = useAuth();
   const favorites = useFavorites();
 
-  const busy = status === "checking" || (status === "authenticated" && favorites.isPending);
-  const waking = useSkeletonVisible(busy);
+  const pending = status === "checking" || (status === "authenticated" && favorites.isPending);
 
   const count = favorites.data?.length ?? null;
   const line =
@@ -38,7 +36,7 @@ export function FavoritesPage() {
       />
 
       <div className="page-gutter pb-16">
-        {waking ? (
+        {pending ? (
           <>
             <LoadingLine>Opening your list…</LoadingLine>
             <CharacterGridSkeleton count={8} />

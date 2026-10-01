@@ -127,6 +127,10 @@
     color: var(--hp-accent-ink);
   }
 
+  /* Reduced motion is a request, not a preference to be negotiated: every
+     animation and transition collapses to one short frame. The scene's candles
+     and bubbles stop, and nothing in the layout moves. It was ruled out as the
+     cause of the first-paint flash — the page renders identically under it. */
   @media (prefers-reduced-motion: reduce) {
     *,
     *::before,
@@ -183,12 +187,12 @@
     font-variant-numeric: tabular-nums;
   }
 
-  /* A block standing where a value will be. Two frames, hard cut, on the sprite
-     steps: the page's candle flicker, borrowed so the design gains no new motion.
-     Reduced motion keeps one frame — a still block still reads as "on its way". */
+  /* A block standing where a value will be: no animation at all. Sixteen of these
+     blinking at once reads as a glitch — a page of hard edges flickering is the
+     one thing this design's motion budget cannot carry. The shape says "a plate is
+     on its way"; the live region says it in words. */
   .skeleton {
     background-color: var(--hp-paper-3);
-    animation: hp-flicker var(--hp-dur-long) var(--hp-ease-sprite) infinite;
   }
 }
 

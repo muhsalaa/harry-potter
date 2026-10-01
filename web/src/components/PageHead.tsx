@@ -16,6 +16,10 @@ type PageHeadProps = {
 /**
  * A page opens the way a game screen does: one line of fact, one name, one
  * sentence, then a rule the content stands on.
+ *
+ * The rule is a div, not an `<hr>`: a bare `<hr>` is a black inset bar in the
+ * browser's own stylesheet, so any frame painted before the app's CSS arrives
+ * (see index.html) would carry one dark line the design does not have.
  */
 export function PageHead({ line, title, lede }: PageHeadProps) {
   return (
@@ -23,7 +27,7 @@ export function PageHead({ line, title, lede }: PageHeadProps) {
       {line ? <p className="label numeric text-muted">{line}</p> : null}
       <h1 className={`font-display text-xl-display text-ink${line ? " mt-2" : ""}`}>{title}</h1>
       {lede ? <p className="prose mt-3 max-w-[var(--hp-measure)] text-muted">{lede}</p> : null}
-      <hr className="mt-6 border-0 border-t-[3px] border-rule-strong" aria-hidden="true" />
+      <div className="mt-6 border-t-[3px] border-rule-strong" aria-hidden="true" />
     </header>
   );
 }
@@ -39,7 +43,7 @@ export function PageHeadSkeleton() {
     <header className="page-gutter pt-10 pb-8" aria-hidden="true">
       <Bar className="h-3 w-44" />
       <Bar className="mt-3.5 h-7 w-60" />
-      <hr className="mt-6 border-0 border-t-[3px] border-rule-strong" />
+      <div className="mt-6 border-t-[3px] border-rule-strong" />
     </header>
   );
 }

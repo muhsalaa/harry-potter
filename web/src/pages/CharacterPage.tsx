@@ -6,7 +6,6 @@ import { LoadingLine, RecordSkeleton } from "../components/Skeleton";
 import { FavoriteControl } from "../components/slots/FavoriteControl";
 import { NotePanel } from "../components/slots/NotePanel";
 import { useCharacter } from "../hooks/characters";
-import { useSkeletonVisible } from "../hooks/useSkeletonVisible";
 
 import type { Character } from "../api/characters";
 
@@ -49,16 +48,15 @@ function recordRows(character: Character): Array<[string, string]> {
 export function CharacterPage() {
   const { slug = "" } = useParams();
   const record = useCharacter(slug);
-  const waking = useSkeletonVisible(record.isPending);
 
   if (record.isPending) {
-    return waking ? (
+    return (
       <>
         <LoadingLine>Opening the record…</LoadingLine>
         <PageHeadSkeleton />
         <RecordSkeleton />
       </>
-    ) : null;
+    );
   }
 
   if (record.isError) {

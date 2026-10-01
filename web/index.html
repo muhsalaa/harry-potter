@@ -4,6 +4,21 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <meta name="theme-color" content="#f3e9df" />
+    <!--
+      The first frame, before the stylesheet exists. In dev the app's CSS is
+      injected from the module graph, so a refresh paints one frame with no CSS
+      on it: white paper, 8px default margins, every element in browser defaults.
+      Declaring the page's own background here makes that frame paper instead of
+      white — and, on a dark-preference machine, instead of black. This hex is one
+      of the three values index.html cannot read from tokens.css;
+      scripts/check-tokens.mjs holds it to --hp-paper.
+    -->
+    <style>
+      html {
+        background-color: #f3e9df;
+        color-scheme: light;
+      }
+    </style>
     <title>Wizarding Index — every character, one tower</title>
     <meta
       name="description"

@@ -1,11 +1,11 @@
 /**
- * Loading, drawn in the shape of what is coming. Three pieces:
+ * Loading, drawn in the shape of what is coming.
  *
- * - `Bar` is one grey block. It flickers between two paper tones on the sprite
- *   easing — the same `hp-flicker` the candles use — because a blurred shimmer
- *   gradient would be the one soft thing on a page made of hard edges. Under
- *   `prefers-reduced-motion` the global rule stops it after a single frame, which
- *   is the intent: a still block still says "a value is on its way".
+ * - `Bar` is one grey block, and it holds still. It used to flicker between two
+ *   paper tones — bright idea at one tile, a strobe at sixteen, and the page read
+ *   as a glitch rather than as patience. A static block in the right shape says
+ *   "a value is on its way" on its own, and it is the only honest option on a
+ *   page whose motion budget is one candle.
  *
  * - `NumeralSkeleton` and `CharacterGridSkeleton` copy the real furniture of
  *   the index — the corpus count, the 4-up grid, the framed plate, the two-line
@@ -14,6 +14,10 @@
  *   page around them instead of sixteen empty tiles.
  *
  * - `RecordSkeleton` does the same for one character's spec sheet.
+ *
+ * Nothing here waits for a slower connection before it dares to draw: sixteen
+ * plates held back 200ms so a warm cache would not flash them was, in practice,
+ * a page with a hole in it and half a skeleton.
  */
 
 const TILE = "edge border-rule-strong bg-paper-2 p-1 shadow-[var(--hp-shadow-sprite)]";
