@@ -1,9 +1,10 @@
-/* Hallmark · pre-emit critique: P5 H4 E5 S4 R5 V5
- * Hallmark · genre: editorial · macrostructure: Catalogue · theme: Newsprint · nav: N6 · footer: Ft2
- * enrichment: none (typography only) · motion: none (newsprint duration scale 0×)
- * contrast: pass (40–41) · nav/footer/slop: pass (42–45) · honest: pass (46)
- * chrome: pass (47) · tokens: pass (48) · responsive: pass (49) · mobile: pass (34, 49, 50–57)
- * icons: pass (30) · italic headers: none (38a) · slop sweep: 58/58
+/* Hallmark · pre-emit critique: P5 H4 E5 S5 R5 V5
+ * Hallmark · route: custom (bespoke hero) · macrostructure: Marquee Hero · theme: pixel-tower
+ * nav: N7 Brutal slab · footer: Ft5 Statement · enrichment: H9 hand-built SVG (Tier B)
+ * scene: 144×96 pixel grid, 10 motifs, hand-authored — no external art
+ * contrast: pass (40–41) · nav/footer: pass (42–45) · honest: pass (46) · chrome: pass (47)
+ * tokens: pass (48) · responsive: pass (49) · mobile: pass (34, 49, 50–57) · italic heads: none (38a)
+ * motion: stepped only (steps(2)) · infinite loops: none — the scene settles after 4 frames
  */
 @import "tailwindcss";
 @import "./tokens.css";
@@ -25,13 +26,15 @@
   --color-ink: var(--hp-ink);
   --color-accent: var(--hp-accent);
   --color-accent-deep: var(--hp-accent-deep);
+  --color-accent-ink: var(--hp-accent-ink);
   --color-focus: var(--hp-focus);
+  --color-magic: var(--hp-magic);
   --color-error: var(--hp-error);
   --color-success: var(--hp-success);
 
   --font-display: var(--hp-font-display);
   --font-body: var(--hp-font-body);
-  --font-mono: var(--hp-font-mono);
+  --font-glyph: var(--hp-font-glyph);
 
   --text-xs: var(--hp-text-xs);
   --text-sm: var(--hp-text-sm);
@@ -44,16 +47,21 @@
   --text-4xl: var(--hp-text-4xl);
   --text-display-s: var(--hp-text-display-s);
   --text-display: var(--hp-text-display);
-  --text-wordmark: var(--hp-text-wordmark);
   --text-xl-display: var(--hp-text-xl-display);
+  --text-wordmark: var(--hp-text-wordmark);
+  --text-mark-s: var(--hp-text-mark-s);
 }
 
 @layer base {
-  /* Deliberate overflow (a wide plate, a long wordmark) must never scroll the
+  /* Deliberate overflow (a wide scene, a long wordmark) must never scroll the
      document sideways. `clip`, not `hidden` — `hidden` breaks position: sticky. */
   html,
   body {
     overflow-x: clip;
+  }
+
+  html {
+    color-scheme: dark;
   }
 
   body {
@@ -61,8 +69,10 @@
     color: var(--hp-ink);
     font-family: var(--hp-font-body);
     font-size: var(--hp-text-base);
-    line-height: 1.55;
-    -webkit-font-smoothing: antialiased;
+    line-height: 1.6;
+    /* Dark-mode recipe: light text on dark reads heavier, so the body weight
+       drops below 400 rather than the size dropping. */
+    font-weight: 350;
   }
 
   h1,
@@ -70,38 +80,50 @@
   h3 {
     font-family: var(--hp-font-display);
     font-style: normal; /* italic headers are the single most reliable AI tell */
-    font-weight: 600;
-    letter-spacing: -0.015em;
-    line-height: 1.1;
+    font-weight: 400; /* Jersey 15 ships one weight; hierarchy comes from size */
+    /* Pixel faces are drawn cell-by-cell: negative tracking would shear the
+       letterform off its own grid. Display tracking stays at zero by design. */
+    letter-spacing: 0;
+    line-height: 1.06;
     overflow-wrap: anywhere;
     min-width: 0;
   }
 
-  /* Focus rings appear instantly and never animate in. */
+  /* Pixel chrome is chunky and instant; the ring never animates in. */
   :focus-visible {
-    outline: 2px solid var(--hp-focus);
+    outline: 3px solid var(--hp-focus);
     outline-offset: 2px;
   }
 
+  /* Links in running text keep a permanent underline: colour alone would be
+     the only thing distinguishing them from the sentence around them. */
   a {
     color: inherit;
     text-decoration-thickness: var(--hp-rule-hair);
     text-underline-offset: 0.12em;
   }
 
+  .prose a {
+    color: var(--hp-accent);
+    text-decoration-line: underline;
+  }
+
+  /* Every bitmap on this page is a sprite: photos are sampled at a coarse
+     resolution and scaled up with nearest-neighbour, so a movie still and a
+     hand-drawn tile read as the same material. */
   img {
     display: block;
     max-width: 100%;
+    image-rendering: pixelated;
+  }
+
+  svg {
+    shape-rendering: crispEdges;
   }
 
   ::selection {
-    background-color: var(--hp-paper-3);
-  }
-
-  /* Numbers line up in columns: counts, page numbers, the issue line. */
-  .numeric {
-    font-family: var(--hp-font-mono);
-    font-variant-numeric: tabular-nums;
+    background-color: var(--hp-accent);
+    color: var(--hp-accent-ink);
   }
 
   @media (prefers-reduced-motion: reduce) {
@@ -116,15 +138,80 @@
 }
 
 @layer components {
-  /* The broadsheet double rule under the masthead. */
-  .rule-double {
-    border: 0;
-    border-top: var(--hp-rule-hair) solid var(--hp-rule-strong);
-    border-bottom: var(--hp-rule-hair) solid var(--hp-rule-strong);
-    height: 3px;
-  }
-
   .page-gutter {
     padding-inline: var(--hp-page-gutter);
+  }
+
+  /* The one container shape: a 2px frame on an elevated navy, square corners.
+     Depth is a hard offset — a blurred shadow would read as a different medium. */
+  .frame {
+    border: var(--hp-pixel) solid var(--hp-rule);
+    background-color: var(--hp-paper-2);
+  }
+
+  /* Labels are the quiet voice: uppercase body face, tracked, never above a
+     heading as a kicker (gate 54). */
+  .label {
+    font-family: var(--hp-font-body);
+    font-size: var(--hp-text-xs);
+    font-weight: 500;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+
+  /* The outlier register: the wordmark and the corpus numerals. Two slots,
+     nothing else, per the 2+1 rule. */
+  .glyph {
+    font-family: var(--hp-font-glyph);
+    font-weight: 700;
+    letter-spacing: 0;
+  }
+
+  /* A drawn menu caret — the current-item marker in the nav and the toolbar.
+     Built from a clip-path rather than a glyph so it never depends on a font. */
+  .caret {
+    display: inline-block;
+    width: 0.5rem;
+    height: 0.5rem;
+    background-color: currentColor;
+    clip-path: polygon(0 0, 100% 50%, 0 100%);
+  }
+
+  /* Counts, page numbers, years — tabular so columns line up. */
+  .numeric {
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* A dither veil: the pixel-art alternative to a blur scrim. Two-tone
+     checkerboard, so type over the scene still reads as printed on the art. */
+  .dither {
+    background-image: repeating-conic-gradient(
+      color-mix(in oklab, var(--hp-paper) 88%, transparent) 0% 25%,
+      transparent 0% 50%
+    );
+    background-size: 4px 4px;
+  }
+}
+
+/* Sprite animation: discrete frames, the way a pixel animation loops. Each
+   runs a handful of frames and settles — no infinite motion on the page. */
+@keyframes hp-flicker {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.45;
+  }
+}
+
+@keyframes hp-bubble {
+  0% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(-7px);
+    opacity: 0;
   }
 }

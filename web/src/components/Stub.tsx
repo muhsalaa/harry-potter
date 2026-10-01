@@ -8,10 +8,8 @@ import type { ReactNode } from "react";
 export function Stub({ ticket, children }: { ticket: string; children: ReactNode }) {
   return (
     <div className="page-gutter pb-16">
-      <div className="max-w-[var(--hp-measure)] border-t border-rule pt-3">
-        <p className="numeric text-xs tracking-[0.12em] text-muted uppercase">
-          stub · ticket {ticket}
-        </p>
+      <div className="frame max-w-[var(--hp-measure)] p-4">
+        <p className="label text-muted">stub · ticket {ticket}</p>
         <p className="mt-2 text-muted">{children}</p>
       </div>
     </div>

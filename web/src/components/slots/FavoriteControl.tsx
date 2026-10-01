@@ -15,8 +15,9 @@ type FavoriteControlProps = {
  * A Favorite is private to one User: this control never shows a count, and no
  * endpoint behind it returns one (ADR-0002).
  *
- * The press updates immediately and rolls back if the request fails — a toggle
- * that waits for a round trip feels broken.
+ * Two colours, two meanings: amber is the action, the cauldron teal is the
+ * state you own. The press updates immediately and rolls back on failure — a
+ * toggle that waits for a round trip feels broken.
  */
 export function FavoriteControl({ characterId, slug, initiallyFavorited }: FavoriteControlProps) {
   const { status } = useAuth();
@@ -28,10 +29,8 @@ export function FavoriteControl({ characterId, slug, initiallyFavorited }: Favor
 
   if (status === "anonymous") {
     return (
-      <p className="numeric text-sm text-muted">
-        <Link to={`/login?next=/characters/${slug}`} className="text-accent-deep">
-          Sign in
-        </Link>{" "}
+      <p className="prose max-w-[var(--hp-measure)] text-muted">
+        <Link to={`/login?next=/characters/${slug}`}>Sign in</Link>{" "}
         to keep {slug.replace(/-/g, " ")} in your list.
       </p>
     );
@@ -56,12 +55,17 @@ export function FavoriteControl({ characterId, slug, initiallyFavorited }: Favor
 
   return (
     <div>
-      <Button onClick={press} loading={busy} aria-pressed={favorited}>
-        {favorited ? "In your favorites" : "Add to favorites"}
+      <Button
+        onClick={press}
+        loading={busy}
+        aria-pressed={favorited}
+        variant={favorited ? "state" : "slab"}
+      >
+        {favorited ? "In your list" : "Add to your list"}
       </Button>
 
-      <p className="numeric mt-2 text-xs tracking-[0.1em] text-muted uppercase">
-        {favorited ? "private to you" : "kept private, never counted"}
+      <p className="label mt-2 text-muted">
+        {favorited ? "kept private to you" : "private · never counted"}
       </p>
 
       {error ? (

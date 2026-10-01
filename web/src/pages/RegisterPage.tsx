@@ -46,7 +46,7 @@ export function RegisterPage() {
       />
 
       <form onSubmit={submit} className="page-gutter pb-16">
-        <div className="flex max-w-[var(--hp-measure)] flex-col gap-6">
+        <div className="frame flex max-w-[32rem] flex-col gap-6 p-6">
           <Field
             id="email"
             label="Email address"
@@ -68,13 +68,13 @@ export function RegisterPage() {
             disabled={busy}
           />
 
-          <div className="flex flex-wrap items-center gap-4">
+          <div className="flex flex-wrap items-center gap-6">
             <Button type="submit" loading={busy} disabled={!email || password.length < 8}>
               Create account
             </Button>
             <Link
               to={`/login?next=${encodeURIComponent(safeNext(params.get("next")))}`}
-              className="numeric text-xs tracking-[0.1em] uppercase"
+              className="label text-muted"
             >
               Sign in instead
             </Link>

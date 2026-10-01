@@ -53,8 +53,9 @@ function contrast(a, b) {
 const floors = [
   ["ink", 7, "body copy"],
   ["muted", 4.5, "secondary copy"],
-  ["accent", 4.5, "link"],
-  ["accent-deep", 4.5, "active nav item"],
+  ["accent", 4.5, "link · amber action"],
+  ["accent-deep", 4.5, "button edge"],
+  ["magic", 4.5, "owned state (favorited · saved)"],
   ["error", 4.5, "error message"],
   ["success", 4.5, "confirmation text"],
   ["rule-strong", 3, "interactive boundary"],
@@ -84,6 +85,20 @@ for (const surface of surfaces) {
 }
 
 const paper = token("paper");
+
+// Text that sits ON a filled control, which the surface sweep above cannot see.
+console.log("\n· on filled controls");
+for (const [label, backgroundName] of [
+  ["accent", "accent"],
+  ["magic", "magic"],
+]) {
+  const ratio = contrast(token("accent-ink"), token(backgroundName));
+  const ok = ratio >= 7;
+  if (!ok) failures.push(`accent-ink on ${backgroundName} is ${ratio.toFixed(2)}:1, needs 7:1`);
+  console.log(
+    `${ok ? "ok  " : "FAIL"} accent-ink / ${label.padEnd(11)} ${ratio.toFixed(2)}:1  ≥ 7:1  button label`,
+  );
+}
 
 // Walk the source for colour literals outside the token block.
 const colourLiteral = /(oklch|rgb|rgba|hsl|hsla)\(|#[0-9a-fA-F]{3,8}\b/;

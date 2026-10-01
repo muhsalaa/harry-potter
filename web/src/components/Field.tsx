@@ -12,9 +12,12 @@ type FieldProps = {
 };
 
 /**
- * Label above the input, hairline under it. States: default · hover ·
- * focus-visible · disabled · error. Success is the form's job — a field that
- * has been accepted has nothing left to say.
+ * A 2px boxed input on the second paper tone — the pixel field is a slot you
+ * type into, not an underline. States: default · hover · focus-visible ·
+ * disabled · error. Success is the form's job; an accepted field says nothing.
+ *
+ * The message slot is always rendered: an error that appears must not push the
+ * page down around it.
  */
 export function Field({
   id,
@@ -28,14 +31,9 @@ export function Field({
   disabled = false,
   placeholder,
 }: FieldProps) {
-  const describedBy = `${id}-message`;
-
   return (
     <div className="max-w-[var(--hp-measure)]">
-      <label
-        htmlFor={id}
-        className="numeric block text-xs tracking-[0.12em] text-muted uppercase"
-      >
+      <label htmlFor={id} className="label block text-muted">
         {label}
       </label>
 
@@ -46,18 +44,16 @@ export function Field({
         onChange={(event) => onChange(event.target.value)}
         autoComplete={autoComplete}
         aria-invalid={error ? true : undefined}
-        aria-describedby={describedBy || undefined}
+        aria-describedby={`${id}-message`}
         disabled={disabled}
         placeholder={placeholder}
         className={[
-          "mt-1 block min-h-11 w-full border-b border-rule bg-transparent py-2 text-base",
-          error ? "border-error" : "hover:border-rule-strong focus:border-ink",
-          disabled ? "cursor-not-allowed bg-paper-2 text-muted" : "text-ink",
+          "mt-1 block min-h-12 w-full border-[var(--hp-pixel)] bg-paper-2 px-3 py-2 text-base",
+          error ? "border-error" : "border-rule hover:border-rule-strong focus:border-accent",
+          disabled ? "cursor-not-allowed text-muted" : "text-ink",
         ].join(" ")}
       />
 
-      {/* The slot is always present: an appearing error must not push the page
-          down (gate 39). */}
       <p
         id={`${id}-message`}
         role={error ? "alert" : undefined}

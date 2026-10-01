@@ -22,7 +22,7 @@ npm test               # server tests, then the token/contrast gate, then tsc
 
 ## Layout
 
-- `server/` — Express + better-sqlite3, numbered migrations, no ORM
+- `server/` — TypeScript, layered: `src/domain` (rules and translations), `src/application` (use cases over ports), `src/infrastructure` (SQLite, PotterDB, scrypt), `src/http` (Express). No build step, no ORM.
 - `web/` — Vite + React + Tailwind; every colour lives in `web/src/styles/tokens.css`
 - `CONTEXT.md` — glossary (Character, Favorite, Note)
 - `docs/adr/` — why the corpus is mirrored locally, and why nothing here is public

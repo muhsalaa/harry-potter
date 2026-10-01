@@ -5,6 +5,7 @@ import { listFavorites, type Character } from "../api/characters";
 import { useAuth } from "../auth/AuthContext";
 import { CharacterGrid } from "../components/CharacterGrid";
 import { PageHead } from "../components/PageHead";
+import { PixelGlyph } from "../components/pixel";
 
 type State =
   | { kind: "loading" }
@@ -45,25 +46,21 @@ export function FavoritesPage() {
     <>
       <PageHead
         line={count === null ? "your list" : `${count} marked · private to you`}
-        title="Favorites"
+        title="Your list"
         lede="The characters you have marked, most recently marked first. Nobody else can see this page, and no count of it appears anywhere."
       />
 
       <div className="page-gutter pb-16">
-        {status === "checking" ? (
-          <p className="numeric text-sm tracking-[0.1em] text-muted uppercase">loading…</p>
-        ) : null}
+        {status === "checking" ? <p className="label text-muted">loading…</p> : null}
 
         {status === "anonymous" ? (
-          <div className="max-w-[var(--hp-measure)]">
-            <p className="text-muted">
-              A list belongs to an account. Sign in and it will be here.
-            </p>
-            <p className="mt-4 flex flex-wrap gap-4">
-              <Link to="/login?next=/favorites" className="text-accent-deep">
+          <div className="frame max-w-[var(--hp-measure)] p-5">
+            <p className="text-muted">A list belongs to an account. Sign in and it will be here.</p>
+            <p className="mt-4 flex flex-wrap items-center gap-6">
+              <Link to="/login?next=/favorites" className="label text-accent underline">
                 Sign in
               </Link>
-              <Link to="/register?next=/favorites" className="text-accent-deep">
+              <Link to="/register?next=/favorites" className="label text-accent underline">
                 Create an account
               </Link>
             </p>
@@ -77,16 +74,14 @@ export function FavoritesPage() {
         ) : null}
 
         {status === "authenticated" && state.kind === "ready" && count === 0 ? (
-          <div className="max-w-[var(--hp-measure)]">
-            <p className="numeric text-sm tracking-[0.1em] text-muted uppercase">
-              no favorites yet
+          <div className="frame flex max-w-[var(--hp-measure)] flex-col gap-4 p-6">
+            <PixelGlyph kind="quill" className="h-12 w-12" />
+            <p className="text-muted">
+              Nothing marked yet. Marking a character builds a shortlist you can come back to, and
+              the marker stays private to you.
             </p>
-            <p className="mt-2 text-muted">
-              Marking a character is how you build a shortlist you can come back to; the marker
-              stays private.
-            </p>
-            <p className="mt-4">
-              <Link to="/" className="text-accent-deep">
+            <p>
+              <Link to="/" className="label text-accent underline">
                 Browse the index
               </Link>
             </p>

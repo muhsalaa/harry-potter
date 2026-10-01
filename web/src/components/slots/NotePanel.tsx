@@ -56,11 +56,9 @@ export function NotePanel({ characterId, slug }: NotePanelProps) {
 
   if (status === "anonymous") {
     return (
-      <p className="numeric text-sm text-muted">
-        <Link to={`/login?next=/characters/${slug}`} className="text-accent-deep">
-          Sign in
-        </Link>{" "}
-        to keep a private note on this character.
+      <p className="prose max-w-[var(--hp-measure)] text-muted">
+        <Link to={`/login?next=/characters/${slug}`}>Sign in</Link> to keep a private note on
+        this character.
       </p>
     );
   }
@@ -95,10 +93,7 @@ export function NotePanel({ characterId, slug }: NotePanelProps) {
 
   return (
     <form onSubmit={submit} className="max-w-[var(--hp-measure)]">
-      <label
-        htmlFor="note"
-        className="numeric block text-xs tracking-[0.12em] text-muted uppercase"
-      >
+      <label htmlFor="note" className="label block text-muted">
         Your note
       </label>
 
@@ -110,22 +105,22 @@ export function NotePanel({ characterId, slug }: NotePanelProps) {
         rows={6}
         placeholder="What did you notice about this character?"
         aria-describedby="note-count"
-        className="mt-1 block w-full resize-y border border-rule bg-transparent p-3 hover:border-rule-strong focus:border-ink"
+        className="mt-1 block w-full resize-y border-[var(--hp-pixel)] border-rule bg-paper-2 p-3 text-ink hover:border-rule-strong focus:border-accent"
       />
 
-      <div className="mt-2 flex flex-wrap items-center gap-4">
+      <div className="mt-3 flex flex-wrap items-center gap-4">
         <Button type="submit" loading={busy} disabled={!dirty || body.trim().length === 0}>
           Save note
         </Button>
 
         {/* Silent success: the saved line is the feedback, not a toast. */}
         {!dirty && state.savedAt ? (
-          <p className="numeric text-xs tracking-[0.1em] text-muted uppercase">
+          <p className="label numeric text-magic">
             saved · {new Date(`${state.savedAt.replace(" ", "T")}Z`).toLocaleString()}
           </p>
         ) : null}
 
-        <p id="note-count" className="numeric ml-auto text-xs text-muted">
+        <p id="note-count" className="label numeric ms-auto text-muted">
           {body.length} / {NOTE_LIMIT}
         </p>
       </div>
