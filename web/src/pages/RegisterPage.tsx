@@ -40,9 +40,8 @@ export function RegisterPage() {
   return (
     <>
       <PageHead
-        line="new account"
         title="Create an account"
-        lede="An email address and a password. There is no verification email and no password reset in this build — remember what you typed."
+        lede="An email address and a password, nothing else. No message arrives in your inbox, so pick something you will remember."
       />
 
       <form onSubmit={submit} className="page-gutter pb-16">
@@ -74,7 +73,7 @@ export function RegisterPage() {
             </Button>
             <Link
               to={`/login?next=${encodeURIComponent(safeNext(params.get("next")))}`}
-              className="label text-muted"
+              className="label text-accent underline"
             >
               Sign in instead
             </Link>

@@ -42,7 +42,6 @@ export function LoginPage() {
   return (
     <>
       <PageHead
-        line="session"
         title="Sign in"
         lede="An account exists here for one reason: a favorite and a note need an owner. Nothing you mark is ever shown to anyone else."
       />
@@ -72,7 +71,7 @@ export function LoginPage() {
             <Button type="submit" loading={busy} disabled={!email || !password}>
               Sign in
             </Button>
-            <Link to={`/register?next=${encodeURIComponent(safeNext(params.get("next")))}`} className="label text-muted">
+            <Link to={`/register?next=${encodeURIComponent(safeNext(params.get("next")))}`} className="label text-accent underline">
               Create an account
             </Link>
           </div>

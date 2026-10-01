@@ -12,9 +12,12 @@ type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
  * transitioned — the shadow change is discrete on purpose, because a pixel
  * control changes state in frames, not in tweens.
  *
- * Three tones, three meanings: amber = an action, teal = a state you own,
- * quiet = a secondary affordance. Pass a variant, never a colour override —
- * two Tailwind utilities setting the same property do not resolve by order.
+ * Three tones, three meanings: a lit amber slab = an action, a lit teal slab =
+ * a state you own, quiet = a secondary affordance. Hover deepens the *edge*,
+ * never the fill: the label must stay at 11:1 in every state.
+ *
+ * Pass a variant, never a colour override — two Tailwind utilities setting the
+ * same property do not resolve by order.
  *
  * States: default · hover · focus-visible · active · disabled · loading.
  * Error and success belong to the form around it, not to the button.
@@ -38,8 +41,8 @@ export function Button({
       : off
         ? "border-rule bg-paper-2 text-muted shadow-none"
         : variant === "state"
-          ? "border-magic bg-magic text-accent-ink shadow-[var(--hp-shadow-key)] hover:bg-success active:translate-0.5 active:shadow-none"
-          : "border-accent-deep bg-accent text-accent-ink shadow-[var(--hp-shadow-key)] hover:bg-focus active:translate-0.5 active:shadow-none";
+          ? "border-magic bg-magic-fill text-accent-ink shadow-[var(--hp-shadow-key)] hover:border-magic active:translate-0.5 active:shadow-none"
+          : "border-accent-deep bg-accent-fill text-accent-ink shadow-[var(--hp-shadow-key)] hover:border-accent active:translate-0.5 active:shadow-none";
 
   return (
     <button
@@ -51,7 +54,7 @@ export function Button({
         "label inline-flex min-h-12 items-center justify-center whitespace-nowrap uppercase",
         variant === "quiet"
           ? "no-underline"
-          : "border-[var(--hp-pixel)] px-5 py-2 transition-transform duration-[var(--hp-dur-micro)] ease-[var(--hp-ease-out)]",
+          : "edge px-5 py-2 transition-transform duration-[var(--hp-dur-micro)] ease-[var(--hp-ease-out)]",
         off ? "cursor-not-allowed" : "cursor-pointer",
         tone,
         className,

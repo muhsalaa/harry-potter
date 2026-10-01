@@ -12,9 +12,11 @@ type FieldProps = {
 };
 
 /**
- * A 2px boxed input on the second paper tone — the pixel field is a slot you
- * type into, not an underline. States: default · hover · focus-visible ·
- * disabled · error. Success is the form's job; an accepted field says nothing.
+ * A 2px boxed input in the page's own paper colour, lifted off an elevated
+ * panel; the boundary is rule-strong so it clears 3:1 against every surface
+ * (a lighter rule would leave the field invisible inside a frame).
+ * States: default · hover · focus-visible · disabled · error. Success is the
+ * form's job; an accepted field says nothing.
  *
  * The message slot is always rendered: an error that appears must not push the
  * page down around it.
@@ -48,8 +50,8 @@ export function Field({
         disabled={disabled}
         placeholder={placeholder}
         className={[
-          "mt-1 block min-h-12 w-full border-[var(--hp-pixel)] bg-paper-2 px-3 py-2 text-base",
-          error ? "border-error" : "border-rule hover:border-rule-strong focus:border-accent",
+          "mt-1 block min-h-12 w-full edge bg-paper px-3 py-2 text-base",
+          error ? "border-error" : "border-rule-strong hover:border-ink focus:border-accent",
           disabled ? "cursor-not-allowed text-muted" : "text-ink",
         ].join(" ")}
       />

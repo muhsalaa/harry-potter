@@ -1,12 +1,14 @@
-/* Hallmark · macrostructure: Marquee Hero · hero knobs: fold=pixel-scene, display=wordmark-object, CTA=below-fold
- * theme: custom · vibe: "candlelit tower, pixel night, grimoire" · paper: oklch(15% 0.028 280) · accent: oklch(79% 0.150 74)
- * display: Jersey 15 · body: Geist · axes: dark / display-heavy / warm
- * enrichment: H9 hand-built SVG centrepiece (Tier B, no external assets) · nav: N7 · footer: Ft5
- * studied: no · context: inferred from the attached reference image + "pixelated wizardry" · v1.1.0
+/* Hallmark · macrostructure: Split Studio · hero knobs: text-left, art-plate-right, numeral-below
+ * theme: custom · vibe: "parchment catalogue, pixel tower, candle ink" · paper: oklch(94% 0.018 70) · accent: oklch(50% 0.14 62)
+ * display: Jersey 15 · body: Geist · axes: light / display-heavy / warm
+ * enrichment: H9 hand-built SVG centrepiece (Tier B, 384 × 192 grid, no external assets)
+ * genre: editorial (light warm paper, illustration-led index) · nav: N7 Brutal slab · footer: Ft5 Statement
+ * studied: no · reference: attached mood image (candlelit tower) — palette intent and material only
+ * context: revised after user feedback — light mode only, denser art, print-grade contrast · v1.1.0
  *
- * Previous stamp in this project was editorial / Catalogue / Newsprint (light / roman-serif / warm).
- * This run differs on all three axes: paper-band light→dark, display style roman-serif→display-heavy,
- * and the canvas moved from paper to a lit night scene. Diversification satisfied.
+ * Axis history in this project: editorial/Catalogue (light, roman-serif, warm) → dark/tower → this.
+ * It differs from the dark run on paper band (dark → light) and from the editorial run on display
+ * style (roman-serif → display-heavy). Diversification satisfied on both counts.
  *
  * This file is the ONLY place in the project where a colour or font value is written down.
  * Everything else references these names — the pixel scene included: its <rect fill> values are
@@ -14,47 +16,57 @@
  */
 
 :root {
-  /* ── Palette — one warm note, one cool state note, everything else navy ────
-     The reference image is a candlelit library at night: a violet-navy ground,
-     amber flames, moonlit glass, a teal cauldron. Amber is the accent because
-     it is the only light source the user acts by; the cauldron teal is kept
-     for state only (favorited, saved) so the page never juggles two accents. */
-  --hp-paper: oklch(15% 0.028 280);
-  --hp-paper-2: oklch(19% 0.032 280);
-  --hp-paper-3: oklch(24% 0.036 280);
-  --hp-rule: oklch(32% 0.030 280);
-  --hp-rule-strong: oklch(56% 0.038 280);
-  --hp-neutral: oklch(60% 0.030 280);
-  --hp-muted: oklch(76% 0.022 278);
-  --hp-ink: oklch(94% 0.014 276);
-  --hp-accent: oklch(79% 0.15 74);
-  --hp-accent-deep: oklch(70% 0.145 68);
-  --hp-accent-ink: oklch(16% 0.03 280);
-  --hp-focus: oklch(86% 0.19 74);
-  --hp-magic: oklch(80% 0.135 175);
-  --hp-error: oklch(74% 0.155 32);
-  --hp-success: oklch(80% 0.135 175);
+  /* ── Palette — parchment page, ink text, one amber and one owned-state teal ─
+     Light mode is the only mode. Paper is a warm cream (hue 60–80), ink is a
+     violet-navy so the candlelit tower still shows through the type, and the
+     amber darkens to a bronze: the light version of a candle flame has to earn
+     its 4.5:1 on paper rather than glow. */
+  --hp-paper: oklch(94% 0.018 70);
+  --hp-paper-2: oklch(90% 0.02 70);
+  --hp-paper-3: oklch(85% 0.022 68);
+  --hp-rule: oklch(78% 0.022 70);
+  --hp-rule-strong: oklch(52% 0.024 68);
+  --hp-neutral: oklch(52% 0.022 68);
+  --hp-muted: oklch(40% 0.022 66);
+  --hp-ink: oklch(20% 0.026 62);
 
-  /* ── Scene — the hero's own palette. Non-text surfaces only: candle flames,
-     shelf wood, moonlit glass, book spines, banners. Declared here so the
-     artwork cannot drift from the page it sits on. ────────────────────────── */
-  --hp-art-sky: oklch(13% 0.03 282);
-  --hp-art-stone: oklch(34% 0.028 280);
-  --hp-art-stone-2: oklch(43% 0.03 280);
-  --hp-art-wood: oklch(40% 0.055 55);
-  --hp-art-wood-2: oklch(53% 0.06 60);
-  --hp-art-window: oklch(56% 0.075 265);
-  --hp-art-window-2: oklch(72% 0.06 265);
-  --hp-art-moon: oklch(95% 0.03 95);
-  --hp-art-candle: oklch(90% 0.06 88);
-  --hp-art-flame: oklch(86% 0.17 82);
-  --hp-art-banner: oklch(64% 0.15 30);
-  --hp-art-leaf: oklch(56% 0.1 150);
-  --hp-art-book-a: oklch(62% 0.12 45);
-  --hp-art-book-b: oklch(55% 0.1 25);
-  --hp-art-book-c: oklch(60% 0.08 140);
-  --hp-art-book-d: oklch(58% 0.07 265);
-  --hp-art-star: oklch(78% 0.045 265);
+  /* Amber — the action colour. `accent` is for text and rules (bronze),
+     `accent-fill` is the lit surface a button is made of. The bronze is dark
+     enough to hold 4.5:1 on all three surfaces, including paper-3. */
+  --hp-accent: oklch(46% 0.135 60);
+  --hp-accent-deep: oklch(36% 0.115 58);
+  --hp-accent-fill: oklch(84% 0.11 76);
+  --hp-accent-ink: oklch(20% 0.03 60);
+
+  --hp-focus: oklch(42% 0.17 62);
+
+  /* Teal — the state you own (favorited, saved). Always distinct from amber,
+     which is always an action. */
+  --hp-magic: oklch(41% 0.11 175);
+  --hp-magic-fill: oklch(84% 0.075 175);
+  --hp-error: oklch(46% 0.17 28);
+  --hp-success: oklch(41% 0.11 175);
+
+  /* ── Scene — the illustration keeps its own night palette. It is a drawn
+     object on a lit page: the tower stays candlelit so the picture reads as
+     looking into somewhere else, and it never borrows the page's ink. ─────── */
+  --hp-art-sky: oklch(22% 0.045 282);
+  --hp-art-stone: oklch(40% 0.034 280);
+  --hp-art-stone-2: oklch(50% 0.036 280);
+  --hp-art-wood: oklch(45% 0.06 55);
+  --hp-art-wood-2: oklch(58% 0.065 60);
+  --hp-art-window: oklch(60% 0.08 265);
+  --hp-art-window-2: oklch(76% 0.06 265);
+  --hp-art-moon: oklch(96% 0.03 95);
+  --hp-art-candle: oklch(92% 0.06 88);
+  --hp-art-flame: oklch(88% 0.17 82);
+  --hp-art-banner: oklch(66% 0.15 30);
+  --hp-art-leaf: oklch(60% 0.1 150);
+  --hp-art-book-a: oklch(66% 0.12 45);
+  --hp-art-book-b: oklch(58% 0.1 25);
+  --hp-art-book-c: oklch(64% 0.08 140);
+  --hp-art-book-d: oklch(62% 0.07 265);
+  --hp-art-star: oklch(82% 0.045 265);
 
   /* ── Type — display + body + one outlier register (2 + 1) ─────────────────
      Both pixel faces carry a real fallback chain: if the pixel faces fail to
@@ -65,6 +77,10 @@
 
   /* Ratio 1.25 (major third) from a 16px body. */
   --hp-text-xs: 0.64rem;
+  /* Labels are the smallest voice that still reads as text rather than
+     texture: they carry the nav, the tile captions and every form label, and
+     10px is below the floor a label can hold. */
+  --hp-text-label: 0.75rem;
   --hp-text-sm: 0.8rem;
   --hp-text-base: 1rem;
   --hp-text-md: 1.25rem;
@@ -77,12 +93,16 @@
   --hp-text-display-s: clamp(2.25rem, 4vw + 1rem, 4rem);
   --hp-text-display: clamp(2.75rem, 5vw + 1rem, 5.25rem);
 
-  /* The hero wordmark is the fold's one object (Marquee Hero). Silkscreen draws
-     it ~0.92em per character: at 9vw the longest word holds one line at 320px
-     and the mark breaks into two stacked words on desktop, never mid-word. */
-  --hp-text-wordmark: clamp(2rem, 9vw, 5.5rem);
+  /* The wordmark. Silkscreen draws ~0.92em per character, and the token is
+     measured in *container* units (cqi) because the mark lives in a split
+     column: it must fit the column it is in, not the viewport. At 11cqi the
+     longest word holds one line at every width from 320px up, and the mark
+     never breaks mid-word (see .wordmark — breaking is disabled there). */
+  --hp-text-wordmark: clamp(1.75rem, 11cqi, 4.5rem);
   /* The nav's own wordmark: never wraps at 320px (gate 49). */
   --hp-text-mark-s: clamp(1.0625rem, 4.6vw, 1.5rem);
+  /* The corpus numeral: a data object, ≤ 12ch, so it may exceed the display cap. */
+  --hp-text-numeral: clamp(2.5rem, 9vw, 6rem);
 
   --hp-measure: 65ch;
 
@@ -100,18 +120,15 @@
   --hp-page-gutter: clamp(1rem, 5vw, 4.5rem);
 
   /* ── Pixel chrome — everything in this design is drawn on a 2px grid ──────
-     No hairlines: a 1px line on a pixel-art page reads as a rendering
-     accident. Rules are 2px; emphasis rules are 4px. */
+     No hairlines: a 1px line beside 2px pixel frames reads as a rendering
+     accident. Corners are square, so there is no radius scale to declare. */
   --hp-rule-hair: 2px;
-  --hp-rule-thick: 4px;
   --hp-pixel: 2px;
-  --hp-radius-flat: 0;
-  --hp-radius-tick: 2px;
 
-  /* Hard offset depth — a blurred shadow would break the sprite illusion. */
-  --hp-shadow-sprite: 4px 4px 0 0 var(--hp-art-sky);
-  --hp-shadow-sprite-lift: 7px 7px 0 0 var(--hp-art-sky);
-  --hp-shadow-key: 3px 3px 0 0 var(--hp-art-sky);
+  /* Hard offset depth — a blurred shadow would break the sprite illusion.
+     On paper the offset shadow is ink, not a grey wash. */
+  --hp-shadow-sprite: 4px 4px 0 0 var(--hp-ink);
+  --hp-shadow-key: 3px 3px 0 0 var(--hp-accent-deep);
 
   /* ── Motion — sprite animation is discrete. Everything the scene does uses
      `steps()`, the way a 12-frame pixel animation does; UI transitions stay
@@ -124,13 +141,7 @@
   --hp-dur-short: 220ms;
   --hp-dur-long: 420ms;
 
-  /* ── Depth ─────────────────────────────────────────────────────────────── */
-  --hp-z-base: 1;
-  --hp-z-scene: 5;
-  --hp-z-raised: 10;
-  --hp-z-dropdown: 100;
+  /* ── Depth — the sticky band the skip link rides, and nothing else: no tile
+     in this design needs to be layered over another. ─────────────────────── */
   --hp-z-sticky: 200;
-  --hp-z-modal: 400;
-  --hp-z-toast: 500;
-  --hp-z-tooltip: 600;
 }

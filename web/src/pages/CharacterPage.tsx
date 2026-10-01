@@ -10,7 +10,7 @@ import { NotePanel } from "../components/slots/NotePanel";
 type State =
   | { kind: "loading" }
   | { kind: "ready"; character: Character }
-  | { kind: "failed"; message: string };
+  | { kind: "failed" };
 
 /** Only rows with something in them are rendered: an empty field is not a fact. */
 function recordRows(character: Character): Array<[string, string]> {
@@ -61,12 +61,8 @@ export function CharacterPage() {
         if (live) setState({ kind: "ready", character });
       })
       .catch((problem: unknown) => {
-        if (live) {
-          setState({
-            kind: "failed",
-            message: problem instanceof Error ? problem.message : "That character did not load.",
-          });
-        }
+        console.error("[character] the record did not load", problem);
+        if (live) setState({ kind: "failed" });
       });
 
     return () => {
@@ -81,10 +77,10 @@ export function CharacterPage() {
   if (state.kind === "failed") {
     return (
       <>
-        <PageHead line={`character · ${slug}`} title="That character is not here" />
+        <PageHead line="not in the index" title="No entry for that name" />
         <div className="page-gutter pb-16">
           <p role="alert" className="prose max-w-[var(--hp-measure)] text-error">
-            {state.message} <Link to="/">Go back to the index</Link>.
+            Nothing in the index matches that name. <Link to="/">Back to the index</Link>.
           </p>
         </div>
       </>
@@ -92,9 +88,10 @@ export function CharacterPage() {
   }
 
   const { character } = state;
-  const line = [character.house ?? "no house listed", character.bloodStatus, character.species]
-    .filter(Boolean)
-    .join(" · ");
+  const line =
+    [character.house, character.bloodStatus, character.species]
+      .filter((value) => typeof value === "string" && value.trim().length > 0)
+      .join(" · ") || undefined;
 
   return (
     <>
@@ -102,7 +99,7 @@ export function CharacterPage() {
 
       <div className="page-gutter grid gap-8 pb-12 lg:grid-cols-[minmax(0,18rem)_minmax(0,1fr)]">
         <div>
-          <div className="border-[var(--hp-pixel)] border-rule-strong bg-paper-2 p-1 shadow-[var(--hp-shadow-sprite)]">
+          <div className="edge border-rule-strong bg-paper-2 p-1 shadow-[var(--hp-shadow-sprite)]">
             <Portrait image={character.image} name={character.name} priority scale="record" />
           </div>
           <p className="label mt-2 text-muted">
@@ -153,7 +150,7 @@ export function CharacterPage() {
 
         <section className="frame p-5">
           <h2 className="font-display text-lg text-ink">Your note</h2>
-          <p className="label mt-1 text-muted">One per character, rewritten in place</p>
+          <p className="label mt-1 text-muted">One per character. Save again to change it.</p>
           <div className="mt-4">
             <NotePanel characterId={character.id} slug={character.slug} />
           </div>

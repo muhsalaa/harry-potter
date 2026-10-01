@@ -31,7 +31,7 @@ export function FavoriteControl({ characterId, slug, initiallyFavorited }: Favor
     return (
       <p className="prose max-w-[var(--hp-measure)] text-muted">
         <Link to={`/login?next=/characters/${slug}`}>Sign in</Link>{" "}
-        to keep {slug.replace(/-/g, " ")} in your list.
+        to keep this character in your list.
       </p>
     );
   }

@@ -1,12 +1,27 @@
 [
   {
     "date": "2026-10-01",
+    "macrostructure": "Split Studio",
+    "theme": "custom",
+    "theme_axes": "light / display-heavy / warm",
+    "vibe": "parchment catalogue, pixel tower, candle ink",
+    "enrichment": "H9 hand-built SVG (384 × 192 pixel grid, Tier B)",
+    "brief": "Wizarding Index · PotterDB character portal, redesigned to a pixel-wizardry theme in light mode"
+  },
+  {
+    "date": "2026-10-01",
+    "macrostructure": "Marquee Hero",
+    "theme": "custom",
+    "theme_axes": "dark / display-heavy / warm",
+    "vibe": "candlelit tower, pixel night, grimoire",
+    "enrichment": "H9 hand-built SVG (192 × 96 pixel grid, Tier B)",
+    "brief": "Wizarding Index · same run, first pass in dark mode — superseded by the light revision"
+  },
+  {
+    "date": "2026-10-01",
     "macrostructure": "Catalogue",
     "theme": "Newsprint",
-    "theme_axes": "light / roman-serif / warm",
-    "nav": "N6",
-    "footer": "Ft2",
     "enrichment": "none",
-    "brief": "Wizarding Index · PotterDB character portal, private favorites and notes"
+    "brief": "Wizarding Index · PotterDB character portal, browsing and private notes"
   }
 ]

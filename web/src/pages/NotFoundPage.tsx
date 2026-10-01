@@ -11,11 +11,7 @@ export function NotFoundPage() {
         title="No page at this address"
         lede={
           <>
-            The route you asked for is not in the table.{" "}
-            <Link to="/" className="text-accent">
-              Go to the index
-            </Link>
-            .
+            There is no such page in the index. <Link to="/">Back to the front</Link>.
           </>
         }
       />

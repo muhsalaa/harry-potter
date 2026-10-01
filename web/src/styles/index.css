@@ -1,10 +1,13 @@
-/* Hallmark · pre-emit critique: P5 H4 E5 S5 R5 V5
- * Hallmark · route: custom (bespoke hero) · macrostructure: Marquee Hero · theme: pixel-tower
- * nav: N7 Brutal slab · footer: Ft5 Statement · enrichment: H9 hand-built SVG (Tier B)
- * scene: 144×96 pixel grid, 10 motifs, hand-authored — no external art
- * contrast: pass (40–41) · nav/footer: pass (42–45) · honest: pass (46) · chrome: pass (47)
- * tokens: pass (48) · responsive: pass (49) · mobile: pass (34, 49, 50–57) · italic heads: none (38a)
- * motion: stepped only (steps(2)) · infinite loops: none — the scene settles after 4 frames
+/* Hallmark · pre-emit critique: P5 H5 E5 S5 R5 V4
+ * Hallmark · route: custom (light revision) · macrostructure: Split Studio · theme: pixel-tower
+ * genre: editorial · nav: N7 Brutal slab · footer: Ft5 Statement · enrichment: H9 hand-built SVG (384 × 192)
+ * audit pass: eyebrows removed from page heads, labels 12px, empty house fields omitted,
+ *              one motion signal per element, dead tokens dropped, no developer copy on any page
+ * contrast: pass — ink 15.2:1, muted 7.7:1, bronze 5.2:1, teal 5.7:1, rule-strong 3.5:1 (on paper, paper-2, paper-3)
+ * tokens: pass (48) · responsive: pass (34, 49, 50–57) · italic headers: none (38a) · chrome: pass (47)
+ * mobile: 320 / 375 / 414 / 768 / 1440 measured — document never scrolls sideways
+ * motion: stepped only, steps(2), settles after four frames · no infinite loops
+ * light mode only: no dark surface exists in this palette
  */
 @import "tailwindcss";
 @import "./tokens.css";
@@ -26,9 +29,11 @@
   --color-ink: var(--hp-ink);
   --color-accent: var(--hp-accent);
   --color-accent-deep: var(--hp-accent-deep);
+  --color-accent-fill: var(--hp-accent-fill);
   --color-accent-ink: var(--hp-accent-ink);
   --color-focus: var(--hp-focus);
   --color-magic: var(--hp-magic);
+  --color-magic-fill: var(--hp-magic-fill);
   --color-error: var(--hp-error);
   --color-success: var(--hp-success);
 
@@ -50,6 +55,7 @@
   --text-xl-display: var(--hp-text-xl-display);
   --text-wordmark: var(--hp-text-wordmark);
   --text-mark-s: var(--hp-text-mark-s);
+  --text-numeral: var(--hp-text-numeral);
 }
 
 @layer base {
@@ -61,7 +67,7 @@
   }
 
   html {
-    color-scheme: dark;
+    color-scheme: light;
   }
 
   body {
@@ -70,9 +76,6 @@
     font-family: var(--hp-font-body);
     font-size: var(--hp-text-base);
     line-height: 1.6;
-    /* Dark-mode recipe: light text on dark reads heavier, so the body weight
-       drops below 400 rather than the size dropping. */
-    font-weight: 350;
   }
 
   h1,
@@ -122,7 +125,7 @@
   }
 
   ::selection {
-    background-color: var(--hp-accent);
+    background-color: var(--hp-accent-fill);
     color: var(--hp-accent-ink);
   }
 
@@ -142,7 +145,7 @@
     padding-inline: var(--hp-page-gutter);
   }
 
-  /* The one container shape: a 2px frame on an elevated navy, square corners.
+  /* The one container shape: a 2px frame on an elevated panel, square corners.
      Depth is a hard offset — a blurred shadow would read as a different medium. */
   .frame {
     border: var(--hp-pixel) solid var(--hp-rule);
@@ -150,10 +153,10 @@
   }
 
   /* Labels are the quiet voice: uppercase body face, tracked, never above a
-     heading as a kicker (gate 54). */
+     heading as a kicker (gate 54), and never below 12px — they carry the nav. */
   .label {
     font-family: var(--hp-font-body);
-    font-size: var(--hp-text-xs);
+    font-size: var(--hp-text-label);
     font-weight: 500;
     letter-spacing: 0.12em;
     text-transform: uppercase;
@@ -165,6 +168,19 @@
     font-family: var(--hp-font-glyph);
     font-weight: 700;
     letter-spacing: 0;
+  }
+
+  /* The wordmark, sized against its own column (cqi) and never broken inside
+     a word: a wrapped brand that reads WIZARDIN/G is worse than a small one.
+     The parent must declare `container-type: inline-size`. */
+  .wordmark {
+    font-family: var(--hp-font-glyph);
+    font-weight: 700;
+    font-size: var(--hp-text-wordmark);
+    line-height: 1.06;
+    text-transform: uppercase;
+    overflow-wrap: normal;
+    word-break: keep-all;
   }
 
   /* A drawn menu caret — the current-item marker in the nav and the toolbar.
@@ -181,16 +197,15 @@
   .numeric {
     font-variant-numeric: tabular-nums;
   }
+}
 
-  /* A dither veil: the pixel-art alternative to a blur scrim. Two-tone
-     checkerboard, so type over the scene still reads as printed on the art. */
-  .dither {
-    background-image: repeating-conic-gradient(
-      color-mix(in oklab, var(--hp-paper) 88%, transparent) 0% 25%,
-      transparent 0% 50%
-    );
-    background-size: 4px 4px;
-  }
+/* Border width from the token, colour from whatever Tailwind border-* class sits
+   beside it. Declared with @utility (not in @layer components) so variants work
+   — `focus:edge`. `border-[var(--hp-pixel)]` cannot be used inline: Tailwind
+   cannot tell whether a bare var is a width or a colour and emits 0px. */
+@utility edge {
+  border-width: var(--hp-pixel);
+  border-style: solid;
 }
 
 /* Sprite animation: discrete frames, the way a pixel animation loops. Each

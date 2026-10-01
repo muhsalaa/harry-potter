@@ -82,7 +82,7 @@ export function Masthead() {
                 <li>
                   <NavLink
                     to="/register"
-                    className="label inline-flex min-h-11 items-center whitespace-nowrap border-[var(--hp-pixel)] border-accent-deep bg-accent px-4 text-accent-ink no-underline uppercase shadow-[var(--hp-shadow-key)] hover:bg-focus active:translate-0.5 active:shadow-none"
+                    className="label inline-flex min-h-11 items-center whitespace-nowrap edge border-accent-deep bg-accent-fill px-4 text-accent-ink no-underline uppercase shadow-[var(--hp-shadow-key)] hover:border-accent active:translate-0.5 active:shadow-none"
                   >
                     Create account
                   </NavLink>

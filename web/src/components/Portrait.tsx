@@ -30,21 +30,34 @@ function initials(name: string) {
  * The image, or the designed absence of one. 54% of the PotterDB corpus has no
  * portrait, so the empty case is part of the design: a monogram on an elevated
  * plate, which reads as a character tile rather than as a broken image.
+ *
+ * Two-stage source: the mosaic first, then the original file if that file has
+ * no thumbnail to offer. `referrerPolicy="no-referrer"` is required, not a
+ * preference — the image host answers 404 to any request that carries a
+ * Referer header, so a browser that sends one gets nothing back.
  */
 export function Portrait({ image, name, priority = false, scale = "plate" }: PortraitProps) {
-  const [failed, setFailed] = useState(false);
+  const [stage, setStage] = useState<"mosaic" | "original" | "monogram">("mosaic");
   const width = scale === "record" ? 96 : 64;
 
+  const source =
+    !image || stage === "monogram"
+      ? null
+      : stage === "original"
+        ? image
+        : pixelUrl(image, width);
+
   return (
-    <div className="relative aspect-3/4 overflow-clip border-[var(--hp-pixel)] border-rule bg-paper-3">
-      {image && !failed ? (
+    <div className="relative aspect-3/4 overflow-clip edge border-rule bg-paper-3">
+      {source ? (
         <img
-          src={pixelUrl(image, width)}
+          src={source}
           alt=""
           loading={priority ? "eager" : "lazy"}
           fetchPriority={priority ? "high" : "auto"}
           decoding="async"
-          onError={() => setFailed(true)}
+          referrerPolicy="no-referrer"
+          onError={() => setStage(stage === "mosaic" ? "original" : "monogram")}
           className="h-full w-full object-cover object-top"
         />
       ) : (
@@ -52,7 +65,7 @@ export function Portrait({ image, name, priority = false, scale = "plate" }: Por
           <span
             aria-hidden="true"
             className={[
-              "font-display text-rule-strong select-none",
+              "font-display text-muted select-none",
               scale === "record" ? "text-display" : "text-3xl",
             ].join(" ")}
           >

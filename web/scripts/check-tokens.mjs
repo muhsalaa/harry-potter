@@ -50,6 +50,31 @@ function contrast(a, b) {
   return (hi + 0.05) / (lo + 0.05);
 }
 
+/** The sRGB hex a token resolves to — for the two values index.html must inline. */
+function hexOf({ l: L, c: C, h: H }) {
+  const rad = (H * Math.PI) / 180;
+  const a = C * Math.cos(rad);
+  const b = C * Math.sin(rad);
+  const lms = [
+    (L + 0.3963377774 * a + 0.2158037573 * b) ** 3,
+    (L - 0.1055613458 * a - 0.0638541728 * b) ** 3,
+    (L - 0.0894841775 * a - 1.291485548 * b) ** 3,
+  ];
+  return `#${[
+    4.0767416621 * lms[0] - 3.3077115913 * lms[1] + 0.2309699292 * lms[2],
+    -1.2684380046 * lms[0] + 2.6097574011 * lms[1] - 0.3413193965 * lms[2],
+    -0.0041960863 * lms[0] - 0.7034186147 * lms[1] + 1.707614701 * lms[2],
+  ]
+    .map((channel) => {
+      const v = Math.max(0, Math.min(1, channel));
+      const srgb = v <= 0.0031308 ? 12.92 * v : 1.055 * v ** (1 / 2.4) - 0.055;
+      return Math.round(255 * srgb)
+        .toString(16)
+        .padStart(2, "0");
+    })
+    .join("")}`;
+}
+
 const floors = [
   ["ink", 7, "body copy"],
   ["muted", 4.5, "secondary copy"],
@@ -87,16 +112,14 @@ for (const surface of surfaces) {
 const paper = token("paper");
 
 // Text that sits ON a filled control, which the surface sweep above cannot see.
+// The fills are the pale "lit surface" tokens, not the bronze text accent.
 console.log("\n· on filled controls");
-for (const [label, backgroundName] of [
-  ["accent", "accent"],
-  ["magic", "magic"],
-]) {
-  const ratio = contrast(token("accent-ink"), token(backgroundName));
+for (const fill of ["accent-fill", "magic-fill"]) {
+  const ratio = contrast(token("accent-ink"), token(fill));
   const ok = ratio >= 7;
-  if (!ok) failures.push(`accent-ink on ${backgroundName} is ${ratio.toFixed(2)}:1, needs 7:1`);
+  if (!ok) failures.push(`accent-ink on ${fill} is ${ratio.toFixed(2)}:1, needs 7:1`);
   console.log(
-    `${ok ? "ok  " : "FAIL"} accent-ink / ${label.padEnd(11)} ${ratio.toFixed(2)}:1  ≥ 7:1  button label`,
+    `${ok ? "ok  " : "FAIL"} accent-ink / ${fill.padEnd(11)} ${ratio.toFixed(2)}:1  ≥ 7:1  button label`,
   );
 }
 
@@ -126,7 +149,8 @@ for (const path of walk(src)) {
 
 if (strays) failures.push(`${strays} colour literal(s) outside tokens.css`);
 
-// index.html cannot read CSS variables, so its theme-color duplicates --hp-paper.
+// index.html cannot read CSS variables, so two of its values duplicate tokens:
+// the theme-color meta and the favicon's paper + accent hexes.
 const html = readFileSync(join(web, "index.html"), "utf8");
 const themeColor = html.match(/name="theme-color"\s+content="(#[0-9a-fA-F]{6})"/)?.[1];
 if (!themeColor) {
@@ -139,6 +163,24 @@ if (!themeColor) {
   const ok = drift < 0.01;
   if (!ok) failures.push(`index.html theme-color ${themeColor} has drifted from --hp-paper`);
   console.log(`${ok ? "ok  " : "FAIL"} theme-color   drift ${drift.toFixed(4)} from --hp-paper`);
+}
+
+// The favicon data URI carries %23-prefixed hexes that must track the same two
+// tokens; a favicon that drifts is the quietest colour drift of all.
+const favicon = html.match(/rel="icon"[\s\S]*?href="data:image\/svg\+xml,([^"]+)"/)?.[1];
+if (!favicon) {
+  failures.push("index.html has no inline SVG favicon");
+} else {
+  const hexes = [...favicon.matchAll(/%23([0-9a-fA-F]{6})/g)].map((m) => `#${m[1].toLowerCase()}`);
+  const ok = ["paper", "accent"].every((name) => hexes.includes(hexOf(token(name))));
+  if (!ok) {
+    failures.push(
+      `favicon hexes ${hexes.join(" ")} do not match --hp-paper/--hp-accent (${hexOf(token("paper"))} ${hexOf(token("accent"))})`,
+    );
+  }
+  console.log(
+    `${ok ? "ok  " : "FAIL"} favicon       ${hexes.join(" ")} vs tokens ${hexOf(token("paper"))} ${hexOf(token("accent"))}`,
+  );
 }
 
 if (failures.length) {

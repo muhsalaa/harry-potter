@@ -45,7 +45,7 @@ export function FavoritesPage() {
   return (
     <>
       <PageHead
-        line={count === null ? "your list" : `${count} marked · private to you`}
+        line={count === null ? undefined : `${count} marked · private to you`}
         title="Your list"
         lede="The characters you have marked, most recently marked first. Nobody else can see this page, and no count of it appears anywhere."
       />

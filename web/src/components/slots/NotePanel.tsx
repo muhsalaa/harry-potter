@@ -68,7 +68,7 @@ export function NotePanel({ characterId, slug }: NotePanelProps) {
   if (state.kind === "failed") {
     return (
       <p role="alert" className="max-w-[var(--hp-measure)] text-error">
-        {state.message} Reload the page to try again.
+        {state.message} Try reloading the page.
       </p>
     );
   }
@@ -105,7 +105,7 @@ export function NotePanel({ characterId, slug }: NotePanelProps) {
         rows={6}
         placeholder="What did you notice about this character?"
         aria-describedby="note-count"
-        className="mt-1 block w-full resize-y border-[var(--hp-pixel)] border-rule bg-paper-2 p-3 text-ink hover:border-rule-strong focus:border-accent"
+        className="mt-1 block w-full resize-y edge border-rule-strong bg-paper p-3 text-ink hover:border-ink focus:border-accent"
       />
 
       <div className="mt-3 flex flex-wrap items-center gap-4">
@@ -127,7 +127,7 @@ export function NotePanel({ characterId, slug }: NotePanelProps) {
 
       {error ? (
         <p role="alert" className="mt-2 text-sm text-error">
-          {error} Your text is still here — save again when the server is back.
+          {error} Your text is still here — try saving again.
         </p>
       ) : null}
     </form>
